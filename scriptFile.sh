@@ -8,7 +8,7 @@ echo "----------------";
             # 1 - database owner  or root ?
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
-        #AND SHOW THE OPTIONS THAT HAVE PRIVILEGES TO DO IT.
+        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
 
 echo "Write a number from the Menu: ";
 
@@ -101,6 +101,8 @@ function CreateDatabase(){
     return 1;
 }
 
+### -----------------------------------------------------------------------------------
+
 
 function ConnectDatabaseMenu(){
     
@@ -112,7 +114,7 @@ function ConnectDatabaseMenu(){
             # 1 - database owner  or root ?
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
-        #AND SHOW THE OPTIONS THAT HAVE PRIVILEGES TO DO IT.
+        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
 
     echo "Write a number from the Menu: ";
 
@@ -130,3 +132,21 @@ function ConnectDatabaseMenu(){
 }
 
 
+function CreateTable(){
+    
+    read -p "Enter Table Name: " table_name
+     ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
+    
+    # 4- Check if there's a table with same name
+    touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
+    
+    echo "$table_name table is CREATED SUCCESSFULLY" 
+    return 1;
+}
+
+CreateTable
