@@ -28,23 +28,53 @@ function ListDatabases(){
 }
 
 function ConnectToDatabases(){
-    read -p "Enter the Database name that you want to connect to it: " db_connect_name
+
+    read -p "Enter the Database name that you want CONNECT to it: " db_name_connect
 
      for database_name in `ls`;
     do
-        if [[ -d "$database_name" && "$database_name" = "$db_connect_name" ]]; then
+        if [[ -d "$database_name" && "$database_name" = "$db_name_connect" ]]; then
             ## Need to write a validation cases to check 
-                # the command executer is one of :
+                # the command executor is one of :
                     # 1 - database owner  or root ?
-                    # 2 - this user in the owner group ? check the group privilages
-                    # 3 - others ? and check the others privilages 
+                    # 2 - this user in the owner group ? check the group privileges
+                    # 3 - others ? check the others privileges 
 
             cd "$database_name" || { echo "Failed to change directory"; return 1; }
-            echo "Connected to database: $database_name"
+            echo "Connected to database: $database_name SUCCESSFULLY"
             return 0;
         fi
     done 
 
     echo "Directory not found or not accessible."
 }
+
+
+function DropDatabase(){
+
+    read -p "Enter the Database name that you want to DROP it: " db_name_drop
+
+    for database_name in `ls`;
+    do  
+        if [[ -d "$database_name" && "$database_name" = "$db_name_drop" ]]; then
+            ## Need to write a validation cases to check 
+                # the command executor is one of :
+                    # 1 - database owner  or root ?
+                    # 2 - this user in the owner group ? check the group privileges
+                    # 3 - others ? check the others privileges
+            rm -rf "$db_name_drop" || { echo "Faliled to DROP this database"; return 1; }
+            
+            echo "$db_name_drop database is DROPED SUCCESSFULLY"
+            return 0;
+        fi
+    done
+
+    echo "Database $db_name_drop NOT found or NOT accessible"
+    return 1;
+}
+
+
+
+
+
 
