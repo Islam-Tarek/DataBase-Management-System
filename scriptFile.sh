@@ -134,7 +134,8 @@ function ConnectDatabaseMenu(){
 
 function CreateTable(){
     
-    read -p "Enter Table Name: " table_name
+    read -p "Enter Table Name: " table_name_create
+
      ## Need to write a validation cases to check 
         # the command executor is one of :
             # 1 - database owner  or root ?
@@ -143,12 +144,12 @@ function CreateTable(){
         # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
     
     # 4- Check if there's a table with same name
-    touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
+    touch "$table_name_create" || { echo "FAILED to CREATE table"; return 1;}
     
     # Ask about columns number
     # Validate the columns data types
 
-    echo "$table_name table is CREATED SUCCESSFULLY" 
+    echo "$table_name_create table is CREATED SUCCESSFULLY" 
     return 1;
 }
 
@@ -160,7 +161,6 @@ function ListTables(){
             # 1 - database owner  or root ?
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
-        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
 
     echo "All tables: "
 
@@ -174,5 +174,26 @@ function ListTables(){
     return 0;
 }
 
+
+function DropTable(){
+    ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+
+    read -p "Enter the Table name that you want DROP it: " table_name_drop
+
+    rm -f "$table_name_drop" 
+
+    delete_operation_stat=`echo $?`
+
+    if [[ $delete_operation_stat = "0" ]]; then
+        echo "$table_name_drop is DROPED SUCCESSFULLY"; return 0;
+    else
+        echo "FAILED to DROP $table_name_drop table"; return 1;
+    fi
+
+}   
 
 
