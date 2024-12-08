@@ -22,7 +22,7 @@ echo "
 
 function ListDatabases(){
     
-    echo "Your Databases : "
+    echo "All Databases : "
 
     for database_name in `ls`;
     do
@@ -145,8 +145,34 @@ function CreateTable(){
     # 4- Check if there's a table with same name
     touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
     
+    # Ask about columns number
+    # Validate the columns data types
+
     echo "$table_name table is CREATED SUCCESSFULLY" 
     return 1;
 }
 
-CreateTable
+
+function ListTables(){
+
+     ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
+
+    echo "All tables: "
+
+    for table_name in `ls`;
+    do
+        if [[ -f "$table_name" ]]; then
+            echo $table_name;
+        fi
+    done
+
+    return 0;
+}
+
+
+
