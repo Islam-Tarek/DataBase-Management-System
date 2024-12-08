@@ -1,7 +1,14 @@
-#!/bin/bash
+#!/bin/env bash
 
 echo "  Main Menu";
 echo "----------------";
+
+    ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        #AND SHOW THE OPTIONS THAT HAVE PRIVILEGES TO DO IT.
 
 echo "Write a number from the Menu: ";
 
@@ -93,4 +100,33 @@ function CreateDatabase(){
     echo "You are NOT accessible to CREATE database"
     return 1;
 }
+
+
+function ConnectDatabaseMenu(){
+    
+    echo "  Connect to Database Menu";
+    echo "----------------";
+
+    ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        #AND SHOW THE OPTIONS THAT HAVE PRIVILEGES TO DO IT.
+
+    echo "Write a number from the Menu: ";
+
+    echo "1)  Create Table";
+    echo "2)  List Tables";
+    echo "3)  Drop Table";
+    echo "4)  Insert Row into Table";
+    echo "5)  Select Row from Table";
+    echo "6)  Delete Row from Table";
+    echo "7)  Update Row in Table";
+    
+    echo "
+    -------------------------------
+    "
+}
+
 
