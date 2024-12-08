@@ -31,7 +31,7 @@ function ConnectToDatabases(){
 
     read -p "Enter the Database name that you want CONNECT to it: " db_name_connect
 
-     for database_name in `ls`;
+    for database_name in `ls`;
     do
         if [[ -d "$database_name" && "$database_name" = "$db_name_connect" ]]; then
             ## Need to write a validation cases to check 
@@ -75,6 +75,22 @@ function DropDatabase(){
 
 
 
+function CreateDatabase(){
 
+    read -p "Enter the Database name that you want to CREATE it: " db_name_create
 
+     ## Need to write a validation cases to check 
+        # the command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        
+    mkdir "$db_name_create" || { echo "Faliled to CREATE this database"; return 1; }
+
+    echo "$db_name_create database is CREATED SUCCESSFULLY"
+    return 0;  
+    
+    echo "You are NOT accessible to CREATE database"
+    return 1;
+}
 
