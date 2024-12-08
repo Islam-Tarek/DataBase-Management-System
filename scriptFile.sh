@@ -196,4 +196,32 @@ function DropTable(){
 
 }   
 
+function InsertRow(){
+      ## Need to write a validation cases to check 
+        # The command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+
+    
+    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+
+    # To read array of input
+    read  -a insert_query
+    
+    # Check the table is exists or not
+    if [[ ! -e "${insert_query[0]}" ]]; then 
+        echo "the table ${insert_query[0]} NOT EXITS" && return 1;
+    fi
+    
+    echo "New row" >> "${insert_query[0]}" && 
+        echo "New Row added SUCCESSFULLY";
+    
+
+    return 0;
+}
+
+
+
+
 
