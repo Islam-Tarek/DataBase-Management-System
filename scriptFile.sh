@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+
+### Need switch..case to choose the operation
+
 echo "  Main Menu";
 echo "----------------";
 
@@ -106,6 +109,8 @@ function CreateDatabase(){
 
 function ConnectDatabaseMenu(){
     
+    ### Need switch..case to choose the operation
+
     echo "  Connect to Database Menu";
     echo "----------------";
 
@@ -148,6 +153,7 @@ function CreateTable(){
     
     # Ask about columns number
     # Validate the columns data types
+    # Ask about PKs
 
     echo "$table_name_create table is CREATED SUCCESSFULLY" 
     return 1;
@@ -176,6 +182,7 @@ function ListTables(){
 
 
 function DropTable(){
+
     ## Need to write a validation cases to check 
         # the command executor is one of :
             # 1 - database owner  or root ?
@@ -211,9 +218,13 @@ function InsertRow(){
     
     # Check the table is exists or not
     if [[ ! -e "${insert_query[0]}" ]]; then 
-        echo "the table ${insert_query[0]} NOT EXITS" && return 1;
+        echo "The table ${insert_query[0]} NOT EXITS" && return 1;
     fi
     
+    # Check values(array) number > or < the columns number
+    # Check values data types 
+    # Check PKs values
+
     echo "New row" >> "${insert_query[0]}" && 
         echo "New Row added SUCCESSFULLY";
     
@@ -222,6 +233,53 @@ function InsertRow(){
 }
 
 
+function SelectRow(){
+    ## Need to write a validation cases to check 
+        # The command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        
+    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
 
+    # To read array of input
+    read  -a select_query
+    
+    # Check the table is exists or not
+    if [[ ! -e "${select_query[0]}" ]]; then 
+        echo "The table ${select_query[0]} NOT EXITS";
+        return 1;
+    fi
 
+    # Check values(array) number > or < the columns number
+    # Check values data types 
+    
+    #Table name
+    table_name="${select_query[0]}"
+    
+    # get all values
+    search_values=("${select_query[@]:1}")
+    
+    result=$(cat "$table_name")
+    
+    #Search about values
+    for value_x in "${search_values[@]}";
+    do
+        result=$(echo "$result" | grep -w "$value_x")
+    done
 
+    if [[ `cat  "${select_query[0]}" ` = "$result" ]]; then
+        # Need enhancement in the comment and validation why can't select
+        echo "You can't select data from table ${select_query[0]}"
+        return 1; 
+    fi
+    
+    echo "Matched Rows: "
+    echo "$result";
+    return 0;
+
+    
+    
+}
+
+SelectRow
