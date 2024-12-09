@@ -206,6 +206,7 @@ function DropTable(){
 
 }   
 
+
 function InsertRow(){
       ## Need to write a validation cases to check 
         # The command executor is one of :
@@ -285,9 +286,6 @@ function SelectRow(){
     echo "Matched Rows: "
     echo "$result";
     return 0;
-
-    
-    
 }
 
 
@@ -330,4 +328,46 @@ function DeleteRow(){
     return 1;
 }
 
-DeleteRow
+
+function UpdateRow(){
+   ## Need to write a validation cases to check 
+        # The command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        
+    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+
+    # To read array of input
+    read  -a update_query
+    
+    # Check the table is exists or not
+    if [[ ! -e "${update_query[0]}" ]]; then 
+        echo "The table ${update_query[0]} NOT EXITS";
+        return 1;
+    fi
+
+    # Check values(array) number > or < the columns number
+    # Check values data types 
+    # Check columns names
+    # Check values using regular expressions (?, *, _, ...)
+    # add LIMIT feature
+
+    
+    #Table name
+    table_name="${update_query[0]}"
+    
+
+    delete_operation=`awk -v col1="${update_query[1]}" -v col1_update="${update_query[2]}" \
+        -v col2="${update_query[3]}" -v col2_update="${update_query[4]}" \
+        '$0 ~ col1 && $0 ~ col2 {gsub(col1, col1_update); gsub(col2, col2_update)} {print}' "${update_query[0]}"`
+
+    echo "$delete_operation" >  "${update_query[0]}" &&
+    echo "Query executed SUCCESSFULLY" &&
+    return 0;
+        
+    echo "FAILED to executed your query '${update_query[0]}'." &&
+    return 1;
+
+}
+
