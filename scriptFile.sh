@@ -72,6 +72,7 @@ function DropDatabase(){
                     # 1 - database owner  or root ?
                     # 2 - this user in the owner group ? check the group privileges
                     # 3 - others ? check the others privileges
+
             rm -rf "$db_name_drop" || { echo "Faliled to DROP this database"; return 1; }
             
             echo "$db_name_drop database is DROPED SUCCESSFULLY"
@@ -149,6 +150,8 @@ function CreateTable(){
         # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
     
     # 4- Check if there's a table with same name
+
+
     touch "$table_name_create" || { echo "FAILED to CREATE table"; return 1;}
     
     # Ask about columns number
@@ -253,6 +256,10 @@ function SelectRow(){
 
     # Check values(array) number > or < the columns number
     # Check values data types 
+    # Check columns names
+    # Check values using regular expressions (?, *, _, ...)
+    # add LIMIT feature
+
     
     #Table name
     table_name="${select_query[0]}"
@@ -260,6 +267,7 @@ function SelectRow(){
     # get all values
     search_values=("${select_query[@]:1}")
     
+    # store the table data
     result=$(cat "$table_name")
     
     #Search about values
@@ -282,4 +290,44 @@ function SelectRow(){
     
 }
 
-SelectRow
+
+function DeleteRow(){
+
+     ## Need to write a validation cases to check 
+        # The command executor is one of :
+            # 1 - database owner  or root ?
+            # 2 - this user in the owner group ? check the group privileges
+            # 3 - others ? check the others privileges
+        
+    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+
+    # To read array of input
+    read  -a delete_query
+    
+    # Check the table is exists or not
+    if [[ ! -e "${delete_query[0]}" ]]; then 
+        echo "The table ${delete_query[0]} NOT EXITS";
+        return 1;
+    fi
+
+    # Check values(array) number > or < the columns number
+    # Check values data types 
+    # Check columns names
+    # Check values using regular expression (?, *, _, ...)
+    # add LIMIT feature
+
+    # sed  '/value1.*value2.*value3/d' example.txt (to check values in any order)
+    # sed  '/value1 value2 value3/d' example.txt   (to check  values in order)
+        ## we have to redirect the output to the table file using (>) because
+            ## sed command just make this edit in buffer and display this on terminal
+        ## (ORRRRRR) use -i option it apply the changes on the file directly
+    pattern="${delete_query[1]} ${delete_query[2]}$"
+    sed -i "/${pattern}/d" "${delete_query[0]}" &&
+     echo "Query executed SUCCESSFULLY" &&
+     return 0;
+
+    echo "FAILED to executed your query '${delete_query[0]}'." &&
+    return 1;
+}
+
+DeleteRow
