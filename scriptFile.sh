@@ -17,7 +17,7 @@ echo "Write a number from the Menu: ";
 
 echo "1)  Create Database";
 echo "2)  List Databases";
-echo "3)  Connect to a Database";
+echo "3)  Connect to a Data";
 echo "4)  Drop a Database";
 echo "
 -------------------------------
@@ -103,7 +103,7 @@ function CreateDatabase(){
     
     echo "You are NOT accessible to CREATE database"
     return 1;
-}
+}   
 
 ### -----------------------------------------------------------------------------------
 
@@ -140,27 +140,194 @@ function ConnectDatabaseMenu(){
 
 function CreateTable(){
     
-    read -p "Enter Table Name: " table_name_create
+    # read -p "Enter Table Name: " table_name_create
 
-     ## Need to write a validation cases to check 
-        # the command executor is one of :
-            # 1 - database owner  or root ?
-            # 2 - this user in the owner group ? check the group privileges
-            # 3 - others ? check the others privileges
-        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
+    #  ## Need to write a validation cases to check 
+    #     # the command executor is one of :
+    #         # 1 - database owner  or root ?
+    #         # 2 - this user in the owner group ? check the group privileges
+    #         # 3 - others ? check the others privileges
+    #     # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
     
-    # 4- Check if there's a table with same name
+    # # 4- Check if there's a table with same name  ***
+    # if [[ -f "$table_name_create" ]]; then
+    #     echo "There's a FILE have SAME name" && return 1;
+    # fi
 
-
-    touch "$table_name_create" || { echo "FAILED to CREATE table"; return 1;}
+    # touch "$table_name_create" || { echo "FAILED to CREATE table"; return 1;}
     
-    # Ask about columns number
-    # Validate the columns data types
-    # Ask about PKs
+    # # Ask about columns number
+    # echo "columns types is STRING -s or NUMBER -i"
+    # echo "Enter each column name FOLLOWED by it's type seperated by a SPACE
+    # -i for integers and -s for strings"
+    
+    read -p "Enter columns names: " query
+    read -a create_tb_query <<< "$query"
 
-    echo "$table_name_create table is CREATED SUCCESSFULLY" 
-    return 1;
+    ################################# i'm working here
+    ## CREATE TABLE table_name (
+    ##    col1_name type,
+    ##    col2_name type 
+    ## )
+
+    ## CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
+
+    ## Attempt 1:  ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(([^()]*VARCHAR[[:space:]]*\([[:space:]]*[0-9]+[[:space:]]*\)[^()]*)\)[[:space:]]*?$
+    ## Attempt 2:  ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*[(][[:space:]]* +[a-zA-Z_][a-zA-Z0-9_]* (INT|VARCHAR) [,]* [[:space:]]* [)]
+    
+    ### Final Attempt : ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*;?$
+
+   regex="^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*?$"
+
+
+
+    # Enhanced regex for CREATE TABLE validation
+    if [[ $query =~ $regex ]]; then
+        echo "Valid CREATE TABLE query."
+      #  return 0
+    else
+        echo "Invalid CREATE TABLE query syntax."
+        return 1
+    fi
+
+    tb_ref="tb_col_types.sh"
+    tb_name="${create_tb_query[2]}"
+    
+    declare -A my_map;
+
+    echo "declare -A $tb_name=(" >> "$tb_ref"
+
+    col_name='';
+
+
+
+    for element in "$create_tb_query";
+    do
+        if [[ "$element"=="VARCHAR" || "$element"=="INT" ]]; 
+        then
+            my_map["$col_name"]="$element"
+            echo "    [\"$col_name\"]=\"$element\"" >> "$tb_ref" 
+        else
+            col_name="$element";
+        fi
+    done
+
+    echo ")" >> "$tb_ref"
+
+    echo "Map has been saved to $tb_ref"
+
+
+    # if [[  ]]
+    # declare -a tb_col_types
+    # declare check_types
+    # declare current_col
+
+    # for col_name in tb_col_name; 
+    # do  
+    #     if[[ col_name != "-i" ]];
+    #     then
+    #         "${tb_col_name[$col_name]}"="i"
+    #     ###########
+    #     fi
+    #          current_col="$col_name";
+    # done
+
+    # # Validate the columns data types
+    # # Ask about PKs
+
+    # echo "$table_name_create table is CREATED SUCCESSFULLY" 
+    # return 1;
 }
+
+
+function CreateTable2(){
+
+     # read -p "Enter Table Name: " table_name_create
+
+    #  ## Need to write a validation cases to check 
+    #     # the command executor is one of :
+    #         # 1 - database owner  or root ?
+    #         # 2 - this user in the owner group ? check the group privileges
+    #         # 3 - others ? check the others privileges
+    #     # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
+    
+    
+    # # Ask about columns number
+    # echo "columns types is STRING -s or NUMBER -i"
+    # echo "Enter each column name FOLLOWED by it's type seperated by a SPACE
+    # -i for integers and -s for strings"
+    
+
+     ################################# i'm working here
+    ## CREATE TABLE table_name (
+    ##    col1_name type,
+    ##    col2_name type 
+    ## )
+
+    ## CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
+        ### Need to enchance this query to accept VARCHAR type without count of letters
+
+    read -p "Enter CREATE TABLE query: " query
+
+    # Regex for validating the CREATE TABLE syntax
+    regex="^CREATE[[:space:]]+TABLE[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*?$"
+
+    # Validate the query syntax
+    if [[ $query =~ $regex ]]; then
+        echo "Valid CREATE TABLE query."
+    else
+        echo "Invalid CREATE TABLE query syntax."
+        return 1
+    fi
+
+    # Extract table name
+    table_name="${BASH_REMATCH[1]}"
+    # Extract column definitions
+    column_definitions="${BASH_REMATCH[2]}"
+
+    tb_ref="tb_col_types.sh"
+
+
+     # 4- Check if there's a table with same name  ***
+    
+    if [[ -f "$table_name_create" ]]; then
+        echo "There's a FILE have SAME name" && return 1;
+    fi
+
+    touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
+
+    # push table name in (allTables) file
+    echo "$table_name" >> "allTables"
+
+    # Initialize the associative array
+    echo "declare -A $table_name=(" >> "$tb_ref"
+
+    # Parse column definitions
+    IFS=',' read -ra columns <<< "$column_definitions"
+    declare -A my_map
+
+    for col in "${columns[@]}"; do
+        # Remove extra whitespace
+        col=$(echo "$col" | xargs)
+        # Extract column name and type
+        col_name=$(echo "$col" | awk '{print $1}')
+        col_type=$(echo "$col" | awk '{print $2}')
+
+        # Ensure col_name and col_type are valid before adding to the map
+        if [[ -n "$col_name" && -n "$col_type" ]]; then
+            my_map["$col_name"]="$col_type"
+            echo "    [\"$col_name\"]=\"$col_type\"" >> "$tb_ref"
+        fi
+    done
+
+    echo ")" >> "$tb_ref"
+    echo "Map for table '$table_name' has been saved to $tb_ref."
+
+    ## Need to create the table format using -----
+}
+
+
+#  CreateTable2
 
 
 function ListTables(){
@@ -172,17 +339,13 @@ function ListTables(){
             # 3 - others ? check the others privileges
 
     echo "All tables: "
-
-    for table_name in `ls`;
-    do
-        if [[ -f "$table_name" ]]; then
-            echo $table_name;
-        fi
-    done
+    cat ./allTables
+    
 
     return 0;
 }
 
+#  ListTables
 
 function DropTable(){
 
@@ -194,7 +357,8 @@ function DropTable(){
 
     read -p "Enter the Table name that you want DROP it: " table_name_drop
 
-    rm -f "$table_name_drop" 
+   
+    rm -f "$table_name_drop" || { echo "FAILED to DROP the table"; return 1;}
 
     delete_operation_stat=`echo $?`
 
@@ -205,6 +369,8 @@ function DropTable(){
     fi
 
 }   
+
+
 
 
 function InsertRow(){
