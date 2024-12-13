@@ -338,12 +338,7 @@ function ListTables(){
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
 
-   for table_name in `ls`;
-    do
-        if [[ -f "$table_name" ]]; then
-            echo $table_name;
-        fi
-    done
+    cat ./allTables || { echo "allTables file NOT exist"; return 1;}
 
     return 0;
 }
