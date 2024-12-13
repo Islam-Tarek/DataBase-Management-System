@@ -338,9 +338,12 @@ function ListTables(){
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
 
-    echo "All tables: "
-    cat ./allTables
-    
+   for table_name in `ls`;
+    do
+        if [[ -f "$table_name" ]]; then
+            echo $table_name;
+        fi
+    done
 
     return 0;
 }
@@ -357,7 +360,15 @@ function DropTable(){
 
     read -p "Enter the Table name that you want DROP it: " table_name_drop
 
-   
+    # Delete lines containing the map
+    sed -i "/^declare -A $table_name_drop=/,/^)/d" tb_col_types.sh || { echo "FAILED to DELETE table map"; return 1;}
+
+    # Delete the table name at (allTables)
+        ## \< matches the start of the word and \> to matches the end of the word
+        ## because I need to match the exact name of the table to prevent false deletion
+    sed -i "/\<$table_name_drop\>/d" allTables || { echo "FAILED to DELETE table name"; return 1;}
+
+    # Remove whole the table
     rm -f "$table_name_drop" || { echo "FAILED to DROP the table"; return 1;}
 
     delete_operation_stat=`echo $?`
@@ -370,7 +381,7 @@ function DropTable(){
 
 }   
 
-
+# DropTable
 
 
 function InsertRow(){
