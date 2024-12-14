@@ -124,10 +124,10 @@ function ConnectDatabaseMenu(){
 
     echo "Write a number from the Menu: ";
 
-    echo "1)  Create Table";
-    echo "2)  List Tables";
-    echo "3)  Drop Table";
-    echo "4)  Insert Row into Table";
+    echo "1)  Create Table";   # --
+    echo "2)  List Tables";    # --
+    echo "3)  Drop Table";     # --
+    echo "4)  Insert Row into Table"; #
     echo "5)  Select Row from Table";
     echo "6)  Delete Row from Table";
     echo "7)  Update Row in Table";
@@ -239,6 +239,9 @@ function CreateTable(){
     # return 1;
 }
 
+#####################################################################################################
+######################################### need to validate the primary key
+#####################################################################################################
 
 function CreateTable2(){
 
@@ -277,7 +280,7 @@ function CreateTable2(){
         echo "Valid CREATE TABLE query."
     else
         echo "Invalid CREATE TABLE query syntax."
-        return 1
+        return 1;
     fi
 
     # Extract table name
@@ -289,7 +292,6 @@ function CreateTable2(){
 
 
      # 4- Check if there's a table with same name  ***
-    
     if [[ -f "$table_name_create" ]]; then
         echo "There's a FILE have SAME name" && return 1;
     fi
@@ -385,28 +387,148 @@ function InsertRow(){
             # 1 - database owner  or root ?
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
-
     
-    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+        # Check PKs values 
+            ## need to make this check but it will done in the next version 
 
-    # To read array of input
-    read  -a insert_query
+    ##### INSERT QUERY
+    # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
     
-    # Check the table is exists or not
-    if [[ ! -e "${insert_query[0]}" ]]; then 
-        echo "The table ${insert_query[0]} NOT EXITS" && return 1;
+    ##### INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land');
+    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land')
+        ### regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
+
+    ## 2- INSERT INTO Persons VALUES (1, 'John', 'Doe', 30);
+        ### regex2="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
+            #### I will make validateion to this regex2 but in the next version
+
+    ## Regex for validating the CREATE TABLE syntax
+    regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*'([^']|'')*'|[0-9]+[[:space:]]*)[,]?)+\)[[:space:]]*?$"
+
+    # To read array of input use -a option
+
+    # read insert query
+    read  -p "Enter your INSERT query:  " query
+    
+    if [[ $query =~ $regex1 ]];
+    then
+        echo "Valid INSERT ROW query."
+    else
+        echo "Invalid INSERT ROW query syntax"
+        return 1;
     fi
     
-    # Check values(array) number > or < the columns number
-    # Check values data types 
-    # Check PKs values
 
+###########################################################################
+########################## The problem is here can't parse the columns and values correctly
+#################################################################################################
+    # Table name
+    table_name=$(echo "$query" | awk -F'[()]' '{print $1}' | sed -E 's/^INSERT[[:space:]]+INTO[[:space:]]+//g' | xargs)
+    # columns definations
+    column_definitions=$(echo "$query" | awk -F'[()]' '{print $2}' | xargs)
+    # get the values
+    values=$(echo "$query" | awk -F'VALUES[[:space:]]*[(]' '{print $2}' | sed -E 's/[)]$//g' | xargs)
+
+    echo "the table name isssssss: $table_name"
+
+
+    echo "Table Name: $table_name"
+    echo "Columns: $column_definitions"
+    echo "Values: $values"
+
+    # will load the table references to the file to check the columns type
+    source ./tb_col_types.sh
+
+
+    # tables reference
+    table_ref="tb_col_types.sh"
+
+
+    # Check the table is exists or not
+    #check_table=`cat allTables | grep -w $table_name`
+    
+   if ! grep -qw "$table_name" allTables; then 
+        echo "The table $table_name does NOT exist."
+        return 1
+    fi
+
+    # Ensure the table metadata exists in the loaded map
+    if [[ -z "${!table_name[@]}" ]];
+    then
+        echo "No metadata founded for table $table_name .";
+        return 1; 
+    fi
+################################################## I'm here  need to make parsing for the query and insert it to the table
+####################### and check columns types
+
+   
+    IFS=',' read -ra columns_array <<< "$column_definitions"
+    IFS=',' read -ra values_array <<< "$values"
+
+    for v in $columns_array;
+    do
+        echo "columns_arrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrray : $v"
+    done
+
+     # Check values(array) number > or < the columns number
+    # check column count matches count
+
+    echo "columns::::::: $columns"
+    if [[ ${#columns_array[@]} -ne ${#values_array[@]} ]];
+    then    
+        echo "column count and values do not match."
+        return 1;
+    fi
+
+    
+    for i in "${!columns_array[@]}"; 
+    do
+        # Remove extra spaces
+        col_name=$(echo "${columns_array[i]}" | xargs)
+        col_value=$(echo "${values_array[i]}" | xargs)
+        ehco "The table name isss::::::::::$table_name"
+        
+        # Check if the column exists in the table metadata
+         if [[ -z "${!table_name[$col_name]}" ]]; 
+         then
+            echo "Column $col_name doesn't exist in table $table_name"
+            return 1
+        fi
+
+        # Validate the value type
+         col_type="${!table_name[$col_name]}"
+        if [[ "$col_type" == "INT" ]]; then
+            if ! [[ "$col_value" =~ ^[0-9]+$ ]]; then
+                echo "Value $col_value for column $col_name isn't of the type INT"
+                return 1
+            fi
+        elif [[ "$col_type" =~ ^VARCHAR\(([0-9]+)\)$ ]]; then
+            max_len="${BASH_REMATCH[1]}"
+            echo "maxx_leeeeeeeeeeeeeen:::::::: $max_len"
+            if [[ ${#col_value} -gt $max_len ]]; then
+                echo "Value $col_value for column $col_name exceeds VARCHAR($max_len) limit or is not a valid string"
+                return 1
+            fi
+        else
+            echo "Unknown column type $col_type for column $col_name"
+            return 1
+        fi
+    done
+
+
+
+    # append the row to the table file
+    echo "$values" >> "$table_name"
     echo "New row" >> "${insert_query[0]}" && 
-        echo "New Row added SUCCESSFULLY";
+    
+    echo "New Row added SUCCESSFULLY to table $table_name";
     
 
     return 0;
 }
+
+# CreateTable2;
+InsertRow;
 
 
 function SelectRow(){
