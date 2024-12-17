@@ -391,11 +391,12 @@ function InsertRow(){
         # Check PKs values 
             ## need to make this check but it will done in the next version 
 
+
     ##### INSERT QUERY
     # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
     
     ##### INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land');
-    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land')
+    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcdst', 'Lala land')
         ### regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
 
     ## 2- INSERT INTO Persons VALUES (1, 'John', 'Doe', 30);
@@ -481,22 +482,32 @@ function InsertRow(){
     fi
 
     
+    # Create a dynamic reference to the table metadata associative array
+    declare -n table_metadata=$table_name
+
+    # Ensure the table metadata exists
+    if [[ -z "${table_metadata[@]}" ]]; then
+        echo "No metadata found for table $table_name."
+        return 1
+    fi
+
     for i in "${!columns_array[@]}"; 
     do
         # Remove extra spaces
         col_name=$(echo "${columns_array[i]}" | xargs)
         col_value=$(echo "${values_array[i]}" | xargs)
-        ehco "The table name isss::::::::::$table_name"
+        echo "The table name isss:::::::::: $table_name"
         
         # Check if the column exists in the table metadata
-         if [[ -z "${!table_name[$col_name]}" ]]; 
-         then
+        if [[ -z "${table_metadata[$col_name]}" ]]; then
             echo "Column $col_name doesn't exist in table $table_name"
             return 1
         fi
 
+        # Retrieve column type from metadata
+        col_type="${table_metadata[$col_name]}"
+
         # Validate the value type
-         col_type="${!table_name[$col_name]}"
         if [[ "$col_type" == "INT" ]]; then
             if ! [[ "$col_value" =~ ^[0-9]+$ ]]; then
                 echo "Value $col_value for column $col_name isn't of the type INT"
@@ -504,7 +515,6 @@ function InsertRow(){
             fi
         elif [[ "$col_type" =~ ^VARCHAR\(([0-9]+)\)$ ]]; then
             max_len="${BASH_REMATCH[1]}"
-            echo "maxx_leeeeeeeeeeeeeen:::::::: $max_len"
             if [[ ${#col_value} -gt $max_len ]]; then
                 echo "Value $col_value for column $col_name exceeds VARCHAR($max_len) limit or is not a valid string"
                 return 1
@@ -518,13 +528,15 @@ function InsertRow(){
 
 
     # append the row to the table file
-    echo "$values" >> "$table_name"
-    echo "New row" >> "${insert_query[0]}" && 
-    
-    echo "New Row added SUCCESSFULLY to table $table_name";
+    formated_values=`echo "$values" | awk '{gsub(",", " ", $0); print $0}'`
+   
+   echo "$formated_values" >> "$table_name" && 
+   echo "New Row added SUCCESSFULLY to table $table_name" && 
+   return 0;
+
     
 
-    return 0;
+        echo "FAILED to INSERT ROW IN $table_name table" && return 1;
 }
 
 # CreateTable2;
