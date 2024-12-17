@@ -420,9 +420,6 @@ function InsertRow(){
     fi
     
 
-###########################################################################
-########################## The problem is here can't parse the columns and values correctly
-#################################################################################################
     # Table name
     table_name=$(echo "$query" | awk -F'[()]' '{print $1}' | sed -E 's/^INSERT[[:space:]]+INTO[[:space:]]+//g' | xargs)
     # columns definations
@@ -459,9 +456,6 @@ function InsertRow(){
         echo "No metadata founded for table $table_name .";
         return 1; 
     fi
-################################################## I'm here  need to make parsing for the query and insert it to the table
-####################### and check columns types
-
    
     IFS=',' read -ra columns_array <<< "$column_definitions"
     IFS=',' read -ra values_array <<< "$values"
@@ -539,8 +533,7 @@ function InsertRow(){
         echo "FAILED to INSERT ROW IN $table_name table" && return 1;
 }
 
-# CreateTable2;
-InsertRow;
+#InsertRow;
 
 
 function SelectRow(){
@@ -550,8 +543,13 @@ function SelectRow(){
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
         
-    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+    # use COLUMN COMMAND  to show the table formated
 
+    echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
+    
+    regex_all='^SELECT[[:space:]]+[*][[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*?$'
+    regex_query='^SELECT[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*(,?[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*)*[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*?$'
+    
     # To read array of input
     read  -a select_query
     
