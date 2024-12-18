@@ -7,3 +7,4 @@ declare -A Persons=(
     ["Address"]="VARCHAR(14)"
     ["City"]="VARCHAR(14)"
 )
+

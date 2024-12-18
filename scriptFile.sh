@@ -326,6 +326,9 @@ function CreateTable2(){
     echo "Map for table '$table_name' has been saved to $tb_ref."
 
     ## Need to create the table format using -----
+    echo "-------------------------- $table_name" 
+    echo "$column_definitions" >> "$table_name"
+    echo ",,----------," >> "$table_name"
 }
 
 
@@ -396,7 +399,7 @@ function InsertRow(){
     # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
     
     ##### INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land');
-    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcdst', 'Lala land')
+    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (2, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
         ### regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
 
     ## 2- INSERT INTO Persons VALUES (1, 'John', 'Doe', 30);
@@ -522,9 +525,9 @@ function InsertRow(){
 
 
     # append the row to the table file
-    formated_values=`echo "$values" | awk '{gsub(",", " ", $0); print $0}'`
+    # formated_values=`echo "$values" | awk '{gsub(",", " ", $0); print $0}'`
    
-   echo "$formated_values" >> "$table_name" && 
+   echo "$values" >> "$table_name" && 
    echo "New Row added SUCCESSFULLY to table $table_name" && 
    return 0;
 
@@ -533,7 +536,7 @@ function InsertRow(){
         echo "FAILED to INSERT ROW IN $table_name table" && return 1;
 }
 
-#InsertRow;
+# InsertRow;
 
 
 function SelectRow(){
@@ -547,12 +550,29 @@ function SelectRow(){
 
     echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
     
-    regex_all='^SELECT[[:space:]]+[*][[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*?$'
-    regex_query='^SELECT[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*(,?[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*)*[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*?$'
+    # SELECT * FROM Persons5
+    regex_all="^SELECT[[:space:]]*[*][[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
+    
+    # SELECT PersonID, LastName, City FROM Persons
+    regex_query="^SELECT[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*,?[[:space:]]*)+[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
     
     # To read array of input
-    read  -a select_query
+    read  -p "Enter your select query: " select_query
     
+
+   if [[ "$select_query" =~ $regex_all ]]; then
+        table_name=`echo "$select_query" | awk '{print $NF;}'`
+        column  "$table_name" -t -s ","
+        return 0;
+    elif [[ "$select_query" =~ $regex_query ]]; then
+        
+
+    else
+        echo "Invalid query"
+    fi
+
+
+
     # Check the table is exists or not
     if [[ ! -e "${select_query[0]}" ]]; then 
         echo "The table ${select_query[0]} NOT EXITS";
@@ -587,10 +607,13 @@ function SelectRow(){
         return 1; 
     fi
     
-    echo "Matched Rows: "
+    echo "Matched Rows: ";
     echo "$result";
-    return 0;
+
+    return 0
 }
+
+ SelectRow
 
 
 function DeleteRow(){
