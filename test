@@ -1,0 +1,74 @@
+function SelectRows() {
+    # File with data
+    file="Persons"
+    
+    # Prompt user for the SELECT query
+    read -p "Enter your SELECT query: " query
+    
+    # Extract table name and columns from the query
+    table_name=$(echo "$query" | awk -F'FROM' '{print $2}' | xargs)
+    columns=$(echo "$query" | awk -F'SELECT' '{print $2}' | awk -F'FROM' '{print $1}' | xargs)
+    
+    if [[ -z "$table_name" || -z "$columns" ]]; then
+        echo "Invalid query format."
+        return 1
+    fi
+
+    # Check if file exists
+    if [[ ! -f $file ]]; then
+        echo "Table $table_name does not exist."
+        return 1
+    fi
+
+    # Read the header (column names) and data from the file
+    header=$(head -1 "$file")
+    data=$(tail -n +3 "$file")  # Skip header and separator line
+
+    # Convert header to an array
+    IFS=',' read -ra header_columns <<< "$header"
+    
+    # Convert selected columns to an array
+    IFS=',' read -ra selected_columns <<< "$columns"
+    
+    # Find indices of the selected columns in the header
+    indices=()
+    for col in "${selected_columns[@]}"; do
+        found=0
+        for i in "${!header_columns[@]}"; do
+            if [[ "${header_columns[i]}" =~ ^[[:space:]]*$col[[:space:]]*$ ]]; then
+                indices+=("$i")
+                found=1
+                break
+            fi
+        done
+        if [[ $found -eq 0 ]]; then
+            echo "Column $col does not exist in table $table_name."
+            return 1
+        fi
+    done
+
+    # Print header row for the selected columns
+    output=""
+    for index in "${indices[@]}"; do
+        output+="${header_columns[index]},"
+    done
+    output=${output%,}  # Remove trailing comma
+    echo "$output" > result.txt
+
+    # Print data rows for the selected columns
+    while IFS=',' read -ra row; do
+        row_output=""
+        for index in "${indices[@]}"; do
+            row_output+="${row[index]},"
+        done
+        row_output=${row_output%,}  # Remove trailing comma
+        echo "$row_output" >> result.txt
+    done <<< "$data"
+
+    # Use the `column` command to display the formatted output
+    echo -e "\nFormatted Output:"
+    column -t -s ',' result.txt
+    rm -f result.txt
+}
+
+SelectRows

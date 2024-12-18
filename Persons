@@ -1,6 +1,5 @@
-PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14)
-,,----------,
-
+PersonID, LastName, FirstName, Address, City
+---------,---------,---------
 2, John2, Doe2, abcdst2, Lala land2
 2, John2, Doe2, abcdst2, Lala land2
 2, John2, Doe2, abcdst2, Lala land2

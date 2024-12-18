@@ -564,56 +564,113 @@ function SelectRow(){
         table_name=`echo "$select_query" | awk '{print $NF;}'`
         column  "$table_name" -t -s ","
         return 0;
-    elif [[ "$select_query" =~ $regex_query ]]; then
-        
 
+
+    elif [[ "$select_query" =~ $regex_query ]]; then
+
+        # Table name
+        table_name=$(echo "$select_query" | awk -F'FROM' '{print $2}' | xargs)
+        
+        # columns definations
+        column_definitions=$(echo "$select_query" | awk -F'SELECT|FROM' '{print $2}' | xargs)
+        
+        echo "Table Name: $table_name"
+        echo "Columns: $column_definitions"
+        
+        # will load the table references to the file to check the columns type
+        source ./tb_col_types.sh
+
+
+        # tables reference
+        table_ref="tb_col_types.sh"
+
+        # Check the table is exists or not    
+        if ! grep -qw "$table_name" allTables; then 
+            echo "The table $table_name does NOT exist."
+            return 1
+        fi
+
+        # Ensure the table metadata exists in the loaded map
+        if [[ -z "${!table_name[@]}" ]];
+        then
+            echo "No metadata founded for table $table_name .";
+            return 1; 
+        fi
+    
+        columns_names=`cat "$table_name" | head -n 1`
+        echo "columnssssssssssssssss $columns_names"
+        IFS=',' read -ra columns_array_tb <<< "$column_definitions"
+        IFS=',' read -ra required_columns <<< "$columns_names"
+
+
+        echo "Header Columns: ${columns_array_tb[@]}"
+            echo "Query Columns: ${required_columns[@]}"
+#            echo "Matched Indices: ${indices[@]}"
+
+
+    indices=()
+        
+    for sel_col in "${columns_array_tb[@]}"; do
+        sel_col=$(echo "$sel_col" | xargs) # Trim spaces
+        found=0
+        for i in "${!required_columns[@]}"; do
+
+            if [[ "$sel_col" == "$(echo "${required_columns[i]}" | xargs)" ]]; then
+                indices+=("$i")
+                found=1
+                break
+            fi
+        done
+        if [[ $found -eq 0 ]]; then
+            echo "Column $sel_col does not exist in table $table_name."
+            return 1
+        fi
+    done
+
+
+    # Print header row for the selected columns
+    output=""
+    for index in "${indices[@]}"; do
+        output+="${header_columns[index]},"
+    done
+    
+    output=${output%,}  # Remove trailing comma
+    echo "$output" > result.txt
+    
+    echo "---------,---------,---------" >> result.txt 
+
+
+     # Print selected rows dynamically
+    while IFS=',' read -ra row; do
+        row_output=""
+        for index in "${indices[@]}"; do
+            row_output+="${row[index]},"
+        done
+        row_output=${row_output%,}  # Remove trailing comma
+        echo "$row_output" >> result.txt
+    done <<< "$data"
+
+    # Use the `column` command to display the formatted output
+    column -t -s ',' result.txt
+    rm -f result.txt
+    
+    
+    elif [[  GET THE ROWS THAT HAVE THE VALUES IN WHERE CONDITION ]]; then
+#####################################################################################
+####################################################################
     else
         echo "Invalid query"
     fi
 
 
+#     # Check values using regular expressions (?, *, _, ...)
+#     # add LIMIT feature
 
-    # Check the table is exists or not
-    if [[ ! -e "${select_query[0]}" ]]; then 
-        echo "The table ${select_query[0]} NOT EXITS";
-        return 1;
-    fi
-
-    # Check values(array) number > or < the columns number
-    # Check values data types 
-    # Check columns names
-    # Check values using regular expressions (?, *, _, ...)
-    # add LIMIT feature
-
-    
-    #Table name
-    table_name="${select_query[0]}"
-    
-    # get all values
-    search_values=("${select_query[@]:1}")
-    
-    # store the table data
-    result=$(cat "$table_name")
-    
-    #Search about values
-    for value_x in "${search_values[@]}";
-    do
-        result=$(echo "$result" | grep -w "$value_x")
-    done
-
-    if [[ `cat  "${select_query[0]}" ` = "$result" ]]; then
-        # Need enhancement in the comment and validation why can't select
-        echo "You can't select data from table ${select_query[0]}"
-        return 1; 
-    fi
-    
-    echo "Matched Rows: ";
-    echo "$result";
-
+ 
     return 0
 }
 
- SelectRow
+#  SelectRow
 
 
 function DeleteRow(){
