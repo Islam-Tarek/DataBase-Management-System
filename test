@@ -2,7 +2,7 @@
 
 function ExtractDeleteQueryDetails() {
     # Example DELETE query
-    query="DELETE FROM Employees WHERE EmployeeID = 6 AND Department = HR AND Salary = 50000"
+    query="DELETE FROM Employees WHERE Name = Omar AND Department = HR AND Salary = 50000"
     # Regex to extract table name and conditions
     regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
 

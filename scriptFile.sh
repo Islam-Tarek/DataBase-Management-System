@@ -687,17 +687,13 @@ function DeleteRow(){
     echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
 
     # DELETE FROM Employees WHERE Department = 'HR' AND Salary > 52000
-    regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*(=|!=|>|<|>=|<=)[[:space:]]*('[^']*'|[0-9]+)[[:space:]]*(AND[[:space:]]+|OR[[:space:]]+)?)+$"
+    regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
 
     # To read array of input
     read  -p "Enter your Delete query: " query
     
-
-regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
-
     # Validate and extract table name and conditions
 
-    
     if [[ $query =~ $regex ]]; then
         table_name="${BASH_REMATCH[1]}"
         conditions="${BASH_REMATCH[2]}"
@@ -737,12 +733,13 @@ regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WH
 
     echo "valesssssssssssssss$valuess"
 
-    pattern=$(echo "$valuess" | sed 's/ /.*, /g')
+   pattern=$(echo "$valuess" | sed 's/ /.*, /g')
     pattern=$(echo "$pattern" | sed 's/, $//')
     echo "patterrrrrrrrrrrrn $pattern"
     sed -i "/$pattern/d" "$table_name" &&
       echo "Query executed SUCCESSFULLY" &&
      return 0;
+
 
     # Check the table is exists or not
     if [[ ! -e "${delete_query[0]}" ]]; then 
@@ -770,7 +767,7 @@ regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WH
     # return 1;
 }
 
-DeleteRow
+# DeleteRow
 
 function UpdateRow(){
    ## Need to write a validation cases to check 
