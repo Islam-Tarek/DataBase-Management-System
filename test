@@ -1,74 +1,59 @@
-function SelectRows() {
-    # File with data
-    file="Persons"
+#!/bin/bash
+
+function ExtractDeleteQueryDetails() {
+    # Example DELETE query
+    query="DELETE FROM Employees WHERE EmployeeID = 6 AND Department = HR AND Salary = 50000"
+    # Regex to extract table name and conditions
+    regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
+
+    # Validate and extract table name and conditions
+
     
-    # Prompt user for the SELECT query
-    read -p "Enter your SELECT query: " query
-    
-    # Extract table name and columns from the query
-    table_name=$(echo "$query" | awk -F'FROM' '{print $2}' | xargs)
-    columns=$(echo "$query" | awk -F'SELECT' '{print $2}' | awk -F'FROM' '{print $1}' | xargs)
-    
-    if [[ -z "$table_name" || -z "$columns" ]]; then
-        echo "Invalid query format."
-        return 1
+    if [[ $query =~ $regex ]]; then
+        table_name="${BASH_REMATCH[1]}"
+        conditions="${BASH_REMATCH[2]}"
+    else
+        echo "Invalid DELETE query syntax."
+        exit 1
     fi
 
-    # Check if file exists
-    if [[ ! -f $file ]]; then
-        echo "Table $table_name does not exist."
-        return 1
-    fi
+    echo "Table Name: $table_name"
 
-    # Read the header (column names) and data from the file
-    header=$(head -1 "$file")
-    data=$(tail -n +3 "$file")  # Skip header and separator line
+    # columnss=$(echo "$conditions" | awk -F'=' '{print $3}' | xargs)
+    # echo "colllllllllllllmns $columnss" 
+    
+    # Extract the column-value pairs from the conditions
+    IFS='AND' read -r -a condition_array <<< "$conditions"
 
-    # Convert header to an array
-    IFS=',' read -ra header_columns <<< "$header"
-    
-    # Convert selected columns to an array
-    IFS=',' read -ra selected_columns <<< "$columns"
-    
-    # Find indices of the selected columns in the header
-    indices=()
-    for col in "${selected_columns[@]}"; do
-        found=0
-        for i in "${!header_columns[@]}"; do
-            if [[ "${header_columns[i]}" =~ ^[[:space:]]*$col[[:space:]]*$ ]]; then
-                indices+=("$i")
-                found=1
-                break
-            fi
-        done
-        if [[ $found -eq 0 ]]; then
-            echo "Column $col does not exist in table $table_name."
-            return 1
+    echo "Conditions:"
+    valuess=""
+    for condition in "${condition_array[@]}"; do
+        # Trim spaces around the condition
+        condition=$(echo "$condition" | xargs)
+
+        # Extract column name and value
+        if [[ $condition =~ ^([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+            column="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+            echo "colllllllll $column"
+            echo "valllllllllll $value"
+            # Remove quotes from string values
+            value=$(echo "$value" | sed "s/^'//;s/'$//")
+            valuess+="$value "
+            echo " $value"
+        # else
+            # echo "Invalid condition: $condition"
         fi
     done
 
-    # Print header row for the selected columns
-    output=""
-    for index in "${indices[@]}"; do
-        output+="${header_columns[index]},"
-    done
-    output=${output%,}  # Remove trailing comma
-    echo "$output" > result.txt
+    echo "valesssssssssssssss$valuess"
 
-    # Print data rows for the selected columns
-    while IFS=',' read -ra row; do
-        row_output=""
-        for index in "${indices[@]}"; do
-            row_output+="${row[index]},"
-        done
-        row_output=${row_output%,}  # Remove trailing comma
-        echo "$row_output" >> result.txt
-    done <<< "$data"
-
-    # Use the `column` command to display the formatted output
-    echo -e "\nFormatted Output:"
-    column -t -s ',' result.txt
-    rm -f result.txt
+    pattern=$(echo "$valuess" | sed 's/ /.*, /g')
+    pattern=$(echo "$pattern" | sed 's/, $//')
+    echo "patterrrrrrrrrrrrn $pattern"
+    sed -i "/$pattern/d" "$table_name" &&
+      echo "Query executed SUCCESSFULLY" &&
+     return 0;
 }
 
-SelectRows
+ExtractDeleteQueryDetails

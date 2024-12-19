@@ -285,8 +285,11 @@ function CreateTable2(){
 
     # Extract table name
     table_name="${BASH_REMATCH[1]}"
+    echo "tableeeeeeeeeeeeeee name  $table_name"
     # Extract column definitions
     column_definitions="${BASH_REMATCH[2]}"
+    echo "column_definitionsssssssssssssssssss  $column_definitions"
+
 
     tb_ref="tb_col_types.sh"
 
@@ -655,7 +658,7 @@ function SelectRow(){
     rm -f result.txt
     
     
-    elif [[  GET THE ROWS THAT HAVE THE VALUES IN WHERE CONDITION ]]; then
+   #elif [[  GET THE ROWS THAT HAVE THE VALUES IN WHERE CONDITION ]]; then
 #####################################################################################
 ####################################################################
     else
@@ -683,9 +686,64 @@ function DeleteRow(){
         
     echo "Write table name then the table Rows in order Ex: (table_name row1_val row2_val ....)"
 
+    # DELETE FROM Employees WHERE Department = 'HR' AND Salary > 52000
+    regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*(=|!=|>|<|>=|<=)[[:space:]]*('[^']*'|[0-9]+)[[:space:]]*(AND[[:space:]]+|OR[[:space:]]+)?)+$"
+
     # To read array of input
-    read  -a delete_query
+    read  -p "Enter your Delete query: " query
     
+
+regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
+
+    # Validate and extract table name and conditions
+
+    
+    if [[ $query =~ $regex ]]; then
+        table_name="${BASH_REMATCH[1]}"
+        conditions="${BASH_REMATCH[2]}"
+    else
+        echo "Invalid DELETE query syntax."
+        exit 1
+    fi
+
+    echo "Table Name: $table_name"
+
+    # columnss=$(echo "$conditions" | awk -F'=' '{print $3}' | xargs)
+    # echo "colllllllllllllmns $columnss" 
+    
+    # Extract the column-value pairs from the conditions
+    IFS='AND' read -r -a condition_array <<< "$conditions"
+
+    echo "Conditions:"
+    valuess=""
+    for condition in "${condition_array[@]}"; do
+        # Trim spaces around the condition
+        condition=$(echo "$condition" | xargs)
+
+        # Extract column name and value
+        if [[ $condition =~ ^([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+            column="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+            echo "colllllllll $column"
+            echo "valllllllllll $value"
+            # Remove quotes from string values
+            value=$(echo "$value" | sed "s/^'//;s/'$//")
+            valuess+="$value "
+            echo " $value"
+        # else
+            # echo "Invalid condition: $condition"
+        fi
+    done
+
+    echo "valesssssssssssssss$valuess"
+
+    pattern=$(echo "$valuess" | sed 's/ /.*, /g')
+    pattern=$(echo "$pattern" | sed 's/, $//')
+    echo "patterrrrrrrrrrrrn $pattern"
+    sed -i "/$pattern/d" "$table_name" &&
+      echo "Query executed SUCCESSFULLY" &&
+     return 0;
+
     # Check the table is exists or not
     if [[ ! -e "${delete_query[0]}" ]]; then 
         echo "The table ${delete_query[0]} NOT EXITS";
@@ -703,15 +761,16 @@ function DeleteRow(){
         ## we have to redirect the output to the table file using (>) because
             ## sed command just make this edit in buffer and display this on terminal
         ## (ORRRRRR) use -i option it apply the changes on the file directly
-    pattern="${delete_query[1]} ${delete_query[2]}$"
-    sed -i "/${pattern}/d" "${delete_query[0]}" &&
-     echo "Query executed SUCCESSFULLY" &&
-     return 0;
+    # pattern="${delete_query[1]} ${delete_query[2]}$"
+    # sed -i "/${pattern}/d" "${delete_query[0]}" &&
+    #  echo "Query executed SUCCESSFULLY" &&
+    #  return 0;
 
-    echo "FAILED to executed your query '${delete_query[0]}'." &&
-    return 1;
+    # echo "FAILED to executed your query '${delete_query[0]}'." &&
+    # return 1;
 }
 
+DeleteRow
 
 function UpdateRow(){
    ## Need to write a validation cases to check 
