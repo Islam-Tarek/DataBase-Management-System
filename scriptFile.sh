@@ -144,113 +144,7 @@ function ConnectDatabaseMenu(){
     "
 }
 
-
 function CreateTable(){
-    
-    # read -p "Enter Table Name: " table_name_create
-
-    #  ## Need to write a validation cases to check 
-    #     # the command executor is one of :
-    #         # 1 - database owner  or root ?
-    #         # 2 - this user in the owner group ? check the group privileges
-    #         # 3 - others ? check the others privileges
-    #     # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
-    
-    # # 4- Check if there's a table with same name  ***
-    # if [[ -f "$table_name_create" ]]; then
-    #     echo "There's a FILE have SAME name" && return 1;
-    # fi
-
-    # touch "$table_name_create" || { echo "FAILED to CREATE table"; return 1;}
-    
-    # # Ask about columns number
-    # echo "columns types is STRING -s or NUMBER -i"
-    # echo "Enter each column name FOLLOWED by it's type seperated by a SPACE
-    # -i for integers and -s for strings"
-    
-    read -p "Enter columns names: " query
-    read -a create_tb_query <<< "$query"
-
-    ################################# i'm working here
-    ## CREATE TABLE table_name (
-    ##    col1_name type,
-    ##    col2_name type 
-    ## )
-
-    ## CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
-
-    ## Attempt 1:  ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(([^()]*VARCHAR[[:space:]]*\([[:space:]]*[0-9]+[[:space:]]*\)[^()]*)\)[[:space:]]*?$
-    ## Attempt 2:  ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*[(][[:space:]]* +[a-zA-Z_][a-zA-Z0-9_]* (INT|VARCHAR) [,]* [[:space:]]* [)]
-    
-    ### Final Attempt : ^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*;?$
-
-   regex="^CREATE[[:space:]]+TABLE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*?$"
-
-
-
-    # Enhanced regex for CREATE TABLE validation
-    if [[ $query =~ $regex ]]; then
-        echo "Valid CREATE TABLE query."
-      #  return 0
-    else
-        echo "Invalid CREATE TABLE query syntax."
-        return 1
-    fi
-
-    tb_ref="tb_col_types.sh"
-    tb_name="${create_tb_query[2]}"
-    
-    declare -A my_map;
-
-    echo "declare -A $tb_name=(" >> "$tb_ref"
-
-    col_name='';
-
-
-
-    for element in "$create_tb_query";
-    do
-        if [[ "$element"=="VARCHAR" || "$element"=="INT" ]]; 
-        then
-            my_map["$col_name"]="$element"
-            echo "    [\"$col_name\"]=\"$element\"" >> "$tb_ref" 
-        else
-            col_name="$element";
-        fi
-    done
-
-    echo ")" >> "$tb_ref"
-
-    echo "Map has been saved to $tb_ref"
-
-
-    # if [[  ]]
-    # declare -a tb_col_types
-    # declare check_types
-    # declare current_col
-
-    # for col_name in tb_col_name; 
-    # do  
-    #     if[[ col_name != "-i" ]];
-    #     then
-    #         "${tb_col_name[$col_name]}"="i"
-    #     ###########
-    #     fi
-    #          current_col="$col_name";
-    # done
-
-    # # Validate the columns data types
-    # # Ask about PKs
-
-    # echo "$table_name_create table is CREATED SUCCESSFULLY" 
-    # return 1;
-}
-
-#####################################################################################################
-######################################### need to validate the primary key
-#####################################################################################################
-
-function CreateTable2(){
 
      # read -p "Enter Table Name: " table_name_create
 
@@ -268,11 +162,6 @@ function CreateTable2(){
     # -i for integers and -s for strings"
     
 
-     ################################# i'm working here
-    ## CREATE TABLE table_name (
-    ##    col1_name type,
-    ##    col2_name type 
-    ## )
 
     ## CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
         ### Need to enchance this query to accept VARCHAR type without count of letters
@@ -367,7 +256,7 @@ function CreateTable2(){
 }
 
 
-#  CreateTable2
+#  CreateTable
 
 
 function ListTables(){
@@ -1077,30 +966,7 @@ function UpdateRow(){
     fi
 
 
-
-    # Check values(array) number > or < the columns number
-    # Check values data types 
-    # Check columns names
-    # Check values using regular expressions (?, *, _, ...)
-    # add LIMIT feature
-
-    
-    # #Table name
-    # table_name="${update_query[0]}"
-    
-
-    # delete_operation=`awk -v col1="${update_query[1]}" -v col1_update="${update_query[2]}" \
-    #     -v col2="${update_query[3]}" -v col2_update="${update_query[4]}" \
-    #     '$0 ~ col1 && $0 ~ col2 {gsub(col1, col1_update); gsub(col2, col2_update)} {print}' "${update_query[0]}"`
-
-    # echo "$delete_operation" >  "${update_query[0]}" &&
-    # echo "Query executed SUCCESSFULLY" &&
-    # return 0;
-        
-    # echo "FAILED to executed your query '${update_query[0]}'." &&
-    # return 1;
-
 }
 
-UpdateRow
+# UpdateRow
 

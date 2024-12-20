@@ -152,4 +152,4 @@ for i in "${!columns_array[@]}"; do
 
 
 
-    # -- UPDATE Persons SET PersonID = 4 WHERE LastName = 'John2'  AND PersonID = '5'
+    # -- UPDATE Persons SET PersonID = 3 WHERE LastName = 'John2'  AND PersonID = '4'
