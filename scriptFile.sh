@@ -557,6 +557,7 @@ function SelectRow(){
     regex_all="^SELECT[[:space:]]*[*][[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
     
     # SELECT PersonID, LastName, City FROM Persons
+    # SELECT PersonID, LastName FROM Persons
     regex_query="^SELECT[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*,?[[:space:]]*)+[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
     
     # To read array of input
@@ -571,96 +572,67 @@ function SelectRow(){
 
     elif [[ "$select_query" =~ $regex_query ]]; then
 
-        # Table name
+        # Extract table name and columns from the query
         table_name=$(echo "$select_query" | awk -F'FROM' '{print $2}' | xargs)
+        columns=$(echo "$select_query" | awk -F'SELECT' '{print $2}' | awk -F'FROM' '{print $1}' | xargs)
         
-        # columns definations
-        column_definitions=$(echo "$select_query" | awk -F'SELECT|FROM' '{print $2}' | xargs)
-        
-        echo "Table Name: $table_name"
-        echo "Columns: $column_definitions"
-        
-        # will load the table references to the file to check the columns type
-        source ./tb_col_types.sh
-
-
-        # tables reference
-        table_ref="tb_col_types.sh"
-
-        # Check the table is exists or not    
-        if ! grep -qw "$table_name" allTables; then 
-            echo "The table $table_name does NOT exist."
+        if [[ -z "$table_name" || -z "$columns" ]]; then
+            echo "Invalid query format."
             return 1
         fi
-
-        # Ensure the table metadata exists in the loaded map
-        if [[ -z "${!table_name[@]}" ]];
-        then
-            echo "No metadata founded for table $table_name .";
-            return 1; 
+        # Check if file exists
+        if [[ ! -f $table_name ]]; then
+            echo "Table $table_name does not exist."
+            return 1
         fi
-    
-        columns_names=`cat "$table_name" | head -n 1`
-        echo "columnssssssssssssssss $columns_names"
-        IFS=',' read -ra columns_array_tb <<< "$column_definitions"
-        IFS=',' read -ra required_columns <<< "$columns_names"
-
-
-        echo "Header Columns: ${columns_array_tb[@]}"
-            echo "Query Columns: ${required_columns[@]}"
-#            echo "Matched Indices: ${indices[@]}"
-
-
-    indices=()
+        # Read the header (column names) and data from the file
+        header=$(head -1 "$table_name")
+        data=$(tail -n +3 "$table_name")  # Skip header and separator line
+        # Convert header to an array
+        IFS=',' read -ra header_columns <<< "$header"
         
-    for sel_col in "${columns_array_tb[@]}"; do
-        sel_col=$(echo "$sel_col" | xargs) # Trim spaces
-        found=0
-        for i in "${!required_columns[@]}"; do
-
-            if [[ "$sel_col" == "$(echo "${required_columns[i]}" | xargs)" ]]; then
-                indices+=("$i")
-                found=1
-                break
+        # Convert selected columns to an array
+        IFS=',' read -ra selected_columns <<< "$columns"
+        
+        # Find indices of the selected columns in the header
+        indices=()
+        for col in "${selected_columns[@]}"; do
+            found=0
+            for i in "${!header_columns[@]}"; do
+                if [[ "${header_columns[i]}" =~ ^[[:space:]]*$col[[:space:]]*$ ]]; then
+                    indices+=("$i")
+                    found=1
+                    break
+                fi
+            done
+            if [[ $found -eq 0 ]]; then
+                echo "Column $col does not exist in table $table_name."
+                return 1
             fi
         done
-        if [[ $found -eq 0 ]]; then
-            echo "Column $sel_col does not exist in table $table_name."
-            return 1
-        fi
-    done
-
-
-    # Print header row for the selected columns
-    output=""
-    for index in "${indices[@]}"; do
-        output+="${header_columns[index]},"
-    done
-    
-    output=${output%,}  # Remove trailing comma
-    echo "$output" > result.txt
-    
-    echo "---------,---------,---------" >> result.txt 
-
-
-     # Print selected rows dynamically
-    while IFS=',' read -ra row; do
-        row_output=""
+        # Print header row for the selected columns
+        output=""
         for index in "${indices[@]}"; do
-            row_output+="${row[index]},"
+            output+="${header_columns[index]},"
         done
-        row_output=${row_output%,}  # Remove trailing comma
-        echo "$row_output" >> result.txt
-    done <<< "$data"
+        output=${output%,}  # Remove trailing comma
+        echo "$output" > result.txt
+        echo "-------, -------, -------" >> result.txt
+        # Print data rows for the selected columns
+        while IFS=',' read -ra row; do
+            row_output=""
+            for index in "${indices[@]}"; do
+                row_output+="${row[index]},"
+            done
+            row_output=${row_output%,}  # Remove trailing comma
+            echo "$row_output" >> result.txt
+        done <<< "$data"
+        # Use the `column` command to display the formatted output
+        column -t -s ',' result.txt
+        rm -f result.txt
 
-    # Use the `column` command to display the formatted output
-    column -t -s ',' result.txt
-    rm -f result.txt
-    
-    
-   #elif [[  GET THE ROWS THAT HAVE THE VALUES IN WHERE CONDITION ]]; then
-#####################################################################################
-####################################################################
+    elif [[  ]]; then
+
     else
         echo "Invalid query"
     fi
@@ -673,7 +645,7 @@ function SelectRow(){
     return 0
 }
 
-#  SelectRow
+ SelectRow
 
 
 function DeleteRow(){
@@ -945,5 +917,5 @@ function UpdateRow(){
 
 }
 
-UpdateRow
+# UpdateRow
 
