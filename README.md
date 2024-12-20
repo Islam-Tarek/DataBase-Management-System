@@ -1,2 +1,2 @@
 # Description
-creating a database management system using Bash Shell Scripting
+Database Management System using Bash Shell Scripting
