@@ -2,27 +2,24 @@
 
 
 ### Need switch..case to choose the operation
+# Function to display the main menu
+function MainMenu(){
+    echo "  Main Menu"
+    echo "----------------"
 
-echo "  Main Menu";
-echo "----------------";
+    # Validation cases to check user privileges can be added here
 
-    ## Need to write a validation cases to check 
-        # the command executor is one of :
-            # 1 - database owner  or root ?
-            # 2 - this user in the owner group ? check the group privileges
-            # 3 - others ? check the others privileges
-        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
+    echo "Write a number from the Menu: "
+    echo "1)  Create Database"
+    echo "2)  List Databases"
+    echo "3)  Connect to a Database"
+    echo "4)  Drop a Database"
+    echo "
+    -------------------------------
+    "
+}
 
-echo "Write a number from the Menu: ";
-
-echo "1)  Create Database";
-echo "2)  List Databases";
-echo "3)  Connect to a Data";
-echo "4)  Drop a Database";
-echo "
--------------------------------
-"
-
+# Function to display the connect database menu
 function ListDatabases(){
     
     echo "All Databases : "
@@ -41,22 +38,29 @@ function ConnectToDatabases(){
 
     read -p "Enter the Database name that you want CONNECT to it: " db_name_connect
 
-    for database_name in `ls`;
-    do
-        if [[ -d "$database_name" && "$database_name" = "$db_name_connect" ]]; then
-            ## Need to write a validation cases to check 
-                # the command executor is one of :
-                    # 1 - database owner  or root ?
-                    # 2 - this user in the owner group ? check the group privileges
-                    # 3 - others ? check the others privileges 
+    if [[ -d "$db_name_connect" ]]; then
+        cd "$db_name_connect"
+        echo "Connected to database: $db_name_connect SUCCESSFULLY"
+    else
+         echo "Database $db_name_connect NOT found"
+    fi
 
-            cd "$database_name" || { echo "Failed to change directory"; return 1; }
-            echo "Connected to database: $database_name SUCCESSFULLY"
-            return 0;
-        fi
-    done 
+    # for database_name in `ls`;
+    # do
+    #     if [[ -d "$database_name" && "$database_name" = "$db_name_connect" ]]; then
+    #         ## Need to write a validation cases to check 
+    #             # the command executor is one of :
+    #                 # 1 - database owner  or root ?
+    #                 # 2 - this user in the owner group ? check the group privileges
+    #                 # 3 - others ? check the others privileges 
 
-    echo "Directory not found or not accessible."
+    #         cd "$database_name" || { echo "Failed to change directory"; return 1; }
+    #         echo "Connected to database: $database_name SUCCESSFULLY"
+    #         return 0;
+    #     fi
+    # done 
+
+    # echo "Directory not found or not accessible."
 }
 
 
@@ -114,31 +118,20 @@ function CreateDatabase(){
 
 ### -----------------------------------------------------------------------------------
 
-
 function ConnectDatabaseMenu(){
-    
-    ### Need switch..case to choose the operation
+    echo "  Connect to Database Menu"
+    echo "----------------"
 
-    echo "  Connect to Database Menu";
-    echo "----------------";
+    # Validation cases to check user privileges can be added here
 
-    ## Need to write a validation cases to check 
-        # the command executor is one of :
-            # 1 - database owner  or root ?
-            # 2 - this user in the owner group ? check the group privileges
-            # 3 - others ? check the others privileges
-        # AND SHOW THE OPTIONS THAT USER HAS PRIVILEGES TO DO IT.
-
-    echo "Write a number from the Menu: ";
-
-    echo "1)  Create Table";   # --
-    echo "2)  List Tables";    # --
-    echo "3)  Drop Table";     # --
-    echo "4)  Insert Row into Table"; #
-    echo "5)  Select Row from Table";
-    echo "6)  Delete Row from Table";
-    echo "7)  Update Row in Table";
-    
+    echo "Write a number from the Menu: "
+    echo "1)  Create Table"
+    echo "2)  List Tables"
+    echo "3)  Drop Table"
+    echo "4)  Insert Row into Table"
+    echo "5)  Select Row from Table"
+    echo "6)  Delete Row from Table"
+    echo "7)  Update Row in Table"
     echo "
     -------------------------------
     "
@@ -251,8 +244,8 @@ function CreateTable(){
 
     ## Need to create the table format using -----
     echo "-------------------------- $table_name" 
-    echo "$column_definitions" >> "$table_name"
-    echo ",,----------," >> "$table_name"
+    echo "$column_definitions" >> "./$table_name"
+    echo ",,----------," >> "./$table_name"
 }
 
 
@@ -307,183 +300,87 @@ function DropTable(){
 
 # DropTable
 
-
 function InsertRow(){
-      ## Need to write a validation cases to check 
-        # The command executor is one of :
-            # 1 - database owner  or root ?
-            # 2 - this user in the owner group ? check the group privileges
-            # 3 - others ? check the others privileges
-    
-        # Check PKs values 
-            ## need to make this check but it will done in the next version 
-
-
-    ##### INSERT QUERY
-    # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
-    
-    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
-        ### regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
-
-    ## 2- INSERT INTO Persons VALUES (1, 'John', 'Doe', 30);
-        ### regex2="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
-            #### I will make validateion to this regex2 but in the next version
-
-    ## Regex for validating the CREATE TABLE syntax
+    ## Regex for validating the INSERT query syntax
     regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*'([^']|'')*'|[0-9]+[[:space:]]*)[,]?)+\)[[:space:]]*?$"
 
-    # To read array of input use -a option
-
-    # read insert query
-    read  -p "Enter your INSERT query:  " query
+    # Read insert query
+    read -p "Enter your INSERT query: " query
     
-    if [[ $query =~ $regex1 ]];
-    then
-        echo "Valid INSERT ROW query."
-    else
+    if [[ ! $query =~ $regex1 ]]; then
         echo "Invalid INSERT ROW query syntax"
-        return 1;
+        return 1
     fi
     
-
-    # Table name
+    # Extract query components
     table_name=$(echo "$query" | awk -F'[()]' '{print $1}' | sed -E 's/^INSERT[[:space:]]+INTO[[:space:]]+//g' | xargs)
-    # columns definations
     column_definitions=$(echo "$query" | awk -F'[()]' '{print $2}' | xargs)
-    # get the values
     values=$(echo "$query" | awk -F'VALUES[[:space:]]*[(]' '{print $2}' | sed -E 's/[)]$//g' | xargs)
 
-    echo "the table name isssssss: $table_name"
-
-
-    echo "Table Name: $table_name"
-    echo "Columns: $column_definitions"
-    echo "Values: $values"
-
-    # will load the table references to the file to check the columns type
-    source ./tb_col_types.sh
-
-
-    # tables reference
-    table_ref="tb_col_types.sh"
-
-
-    # Check the table is exists or not
-    #check_table=`cat allTables | grep -w $table_name`
-    
-   if ! grep -qw "$table_name" allTables; then 
+    # Check if table exists
+    if ! grep -qw "$table_name" allTables; then 
         echo "The table $table_name does NOT exist."
         return 1
     fi
 
-    # Ensure the table metadata exists in the loaded map
-    if [[ -z "${!table_name[@]}" ]];
-    then
-        echo "No metadata founded for table $table_name .";
-        return 1; 
-    fi
-   
-    IFS=',' read -ra columns_array <<< "$column_definitions"
-    IFS=',' read -ra values_array <<< "$values"
+    # Get primary key from tb_col_types.sh
+    primary_key=""
+    while IFS=':' read -r tname pkey; do
+        if [[ "$tname" == "$table_name" ]]; then
+            primary_key="$pkey"
+            break
+        fi
+    done < <(grep -v "^declare" tb_col_types.sh)
 
-    for v in $columns_array;
-    do
-        echo "columns_arrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrray : $v"
-    done
-
-     # Check values(array) number > or < the columns number
-    # check column count matches count
-
-    echo "columns::::::: $columns"
-    if [[ ${#columns_array[@]} -ne ${#values_array[@]} ]];
-    then    
-        echo "column count and values do not match."
-        return 1;
-    fi
-
-    
-    # Create a dynamic reference to the table metadata associative array
-    declare -n table_metadata=$table_name
-
-    # Ensure the table metadata exists
-    if [[ -z "${table_metadata[@]}" ]]; then
-        echo "No metadata found for table $table_name."
+    if [[ -z "$primary_key" ]]; then
+        echo "Could not find primary key for table $table_name"
         return 1
     fi
 
-    # primary_key=`cut -d":" -f"1" tb_col_types.sh | grep -w "$primary_key"`
-    primary_key=$(grep -w "$table_name" tb_col_types.sh | cut -d":" -f"2" | head -n 1)
-    echo "PPPPPPrimary_KKKKKKeYYYY::::::::::::::::::   $primary_key"
-    # Validate the column values
+    # Convert columns and values to arrays
+    IFS=',' read -ra columns_array <<< "$column_definitions"
+    IFS=',' read -ra values_array <<< "$values"
 
-for i in "${!columns_array[@]}"; do
-    # Remove extra spaces
-    col_name=$(echo "${columns_array[i]}" | xargs)
-    col_value=$(echo "${values_array[i]}" | xargs)
-    echo "The table name isss:::::::::: $table_name"
-    
-    if [[ "$col_name" = "$primary_key" ]]; then
-        echo "Primary key value is $col_value"
-        filed_counter=0
-
-        # Get the header line and find the index of the primary key column
-        header=$(head -n 1 "$table_name")
-        IFS=',' read -ra header_columns <<< "$header"
-        for j in "${!header_columns[@]}"; do
-            if [[ "${header_columns[j]}" = "$primary_key" ]]; then
-                filed_counter=$((j + 1))
-                break
-            fi
-        done
-
-        # Check if the primary key value already exists
-        check_primary_key_value=$(cut -d"," -f"$filed_counter" "$table_name" | grep -w "$col_value")
-        if [[ "$check_primary_key_value" != "" ]]; then
-            echo "Primary key value already exists."
-            return 1
-        fi
+    # Validate column count matches value count
+    if [[ ${#columns_array[@]} -ne ${#values_array[@]} ]]; then
+        echo "Column count and values do not match."
+        return 1
     fi
 
-
-        # Check if the column exists in the table metadata
-        if [[ -z "${table_metadata[$col_name]}" ]]; then
-            echo "Column $col_name doesn't exist in table $table_name"
-            return 1
-        fi
-
-        # Retrieve column type from metadata
-        col_type="${table_metadata[$col_name]}"
-
-        # Validate the value type
-        if [[ "$col_type" == "INT" ]]; then
-            if ! [[ "$col_value" =~ ^[0-9]+$ ]]; then
-                echo "Value $col_value for column $col_name isn't of the type INT"
-                return 1
-            fi
-        elif [[ "$col_type" =~ ^VARCHAR\(([0-9]+)\)$ ]]; then
-            max_len="${BASH_REMATCH[1]}"
-            if [[ ${#col_value} -gt $max_len ]]; then
-                echo "Value $col_value for column $col_name exceeds VARCHAR($max_len) limit or is not a valid string"
-                return 1
-            fi
-        else
-            echo "Unknown column type $col_type for column $col_name"
-            return 1
+    # Find primary key value and position
+    pk_value=""
+    pk_position=-1
+    for i in "${!columns_array[@]}"; do
+        col_name=$(echo "${columns_array[$i]}" | xargs)
+        if [[ "$col_name" == "$primary_key" ]]; then
+            pk_value=$(echo "${values_array[$i]}" | tr -d "'" | xargs)
+            pk_position=$((i + 1))
+            break
         fi
     done
 
+    if [[ -z "$pk_value" ]]; then
+        echo "Primary key column not found in INSERT statement"
+        return 1
+    fi
 
+    # Check if primary key value already exists
+    while IFS=',' read -ra row; do
+        if [[ -n "${row[$((pk_position-1))]}" && "${row[$((pk_position-1))]}" == "$pk_value" ]]; then
+            echo "Primary key value $pk_value already exists in table."
+            return 1
+        fi
+    done < <(tail -n +3 "$table_name")
 
-    # append the row to the table file
-    # formated_values=`echo "$values" | awk '{gsub(",", " ", $0); print $0}'`
-   
-   echo "$values" >> "$table_name" && 
-   echo "New Row added SUCCESSFULLY to table $table_name" && 
-   return 0;
+    # If we get here, the primary key is unique, so we can insert
+    formatted_values=$(echo "$values" | sed "s/, /,/g")
+    echo "$formatted_values" >> "$table_name" && 
+    echo "New Row added SUCCESSFULLY to table $table_name" && 
+    return 0
 
-   echo "FAILED to INSERT ROW IN $table_name table" && return 1;
+    echo "FAILED to INSERT ROW IN $table_name table"
+    return 1
 }
-
 # InsertRow;
 
 
@@ -496,28 +393,28 @@ function SelectRow(){
         
     # use COLUMN COMMAND  to show the table formated
 
-    #   SELECT * FROM table_name;
+  #   SELECT * FROM Persons;
     regex_all="^SELECT[[:space:]]*[*][[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
-    # SELECT PersonID, LastName, City FROM Persons
+    # SELECT PersonID, LastName, FirstName FROM Persons
     regex_some_col="^SELECT[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*,?[[:space:]]*)+[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*$"
     # SELECT PersonID, LastName, FirstName, Address FROM Persons WHERE City = 'Lala land2'
-    regex="SELECT\s+.*?\s+FROM\s+\w+\s+WHERE\s+.*?"
-
+    regex="^SELECT[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,[[:space:]]*)*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+WHERE[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*'[^']*'[[:space:]]*$"
     # To read array of input
     read -p "Enter your select query: " select_query
-
     # Checking for different query formats
     if [[ "$select_query" =~ $regex_all ]]; then
         echo "Matched regex_all"
         table_name=$(echo "$select_query" | awk '{print $NF;}')
         column "$table_name" -t -s ","
         return 0
-
     elif [[ "$select_query" =~ $regex_some_col ]]; then
         echo "Matched regex_some_col"
         table_name=$(echo "$select_query" | awk -F'FROM' '{print $2}' | xargs)
+        echo "Table Name: $table_name"
         columns=$(echo "$select_query" | awk -F'SELECT' '{print $2}' | awk -F'FROM' '{print $1}' | xargs)
-        
+        echo "Columns: $columns"
+
+        # Check if file exists
         if [[ -z "$table_name" || -z "$columns" ]]; then
             echo "Invalid query format."
             return 1
@@ -528,20 +425,31 @@ function SelectRow(){
             return 1
         fi
         # Read the header (column names) and data from the file
-        header=$(head -1 "$table_name")
-        data=$(tail -n +3 "$table_name")  # Skip header and separator line
+header=$(head -1 "$table_name")
+        echo "Header: $header"
+data=$(tail -n +3 "$table_name")  # Skip header and separator line
+        echo "Data: $data"
         # Convert header to an array
-        IFS=',' read -ra header_columns <<< "$header"
-        
+IFS=',' read -a header_columns <<< "$header"
+        echo "Header Columns: ${header_columns[@]}"
+        # Trim whitespace from header columns
+for i in "${!header_columns[@]}"; do
+    header_columns[$i]=$(echo "${header_columns[$i]}" | xargs)
+done
         # Convert selected columns to an array
         IFS=',' read -ra selected_columns <<< "$columns"
+        echo "Selected Columns: ${selected_columns[@]}"
         
+        # Find indices of the selected columns in the header
         # Find indices of the selected columns in the header
         indices=()
         for col in "${selected_columns[@]}"; do
+            col=$(echo "$col" | xargs)  # Trim whitespace
             found=0
             for i in "${!header_columns[@]}"; do
-                if [[ "${header_columns[i]}" =~ ^[[:space:]]*$col[[:space:]]*$ ]]; then
+                # Extract just the column name without the data type
+                header_col=$(echo "${header_columns[i]}" | awk '{print $1}')
+                if [[ "$header_col" == "$col" ]]; then
                     indices+=("$i")
                     found=1
                     break
@@ -555,82 +463,89 @@ function SelectRow(){
         # Print header row for the selected columns
         output=""
         for index in "${indices[@]}"; do
+        echo "Index: $index"
             output+="${header_columns[index]},"
         done
         output=${output%,}  # Remove trailing comma
+        echo "Header Output: $output"
         echo "$output" > result.txt
         echo "-------, -------, -------" >> result.txt
         # Print data rows for the selected columns
-        while IFS=',' read -ra row; do
+        while IFS=',' read -a row; do
+        echo "Row: ${row[@]}"
             row_output=""
             for index in "${indices[@]}"; do
                 row_output+="${row[index]},"
+                echo "Row Output: $row_output"
             done
             row_output=${row_output%,}  # Remove trailing comma
+            echo "row_output:::: $row_output"
             echo "$row_output" >> result.txt
         done <<< "$data"
         # Use the `column` command to display the formatted output
         column -t -s ',' result.txt
         rm -f result.txt
-
    elif [[ "$select_query" =~ $regex ]]; then
         echo "Matched regex"
         # Extract components using regex groups
-
         # Use awk to extract the components
         columns=$(echo "$select_query" | awk -F'SELECT | FROM' '{print $2}' | xargs)
         table_name=$(echo "$select_query" | awk -F'FROM | WHERE' '{print $2}' | xargs)
         where_clause=$(echo "$select_query" | awk -F'WHERE ' '{print $2}' | xargs)
         where_col=$(echo "$where_clause" | awk -F'= ' '{print $1}' | xargs)
         where_val=$(echo "$where_clause" | awk -F"= " '{print $2}' | awk -F"'" '{print $1}' | xargs)
-
         # Print the extracted values
         echo "Columns: $columns"
         echo "Table Name: $table_name"
         echo "Where Column: $where_col"
         echo "Where Value: $where_val"
-
         # Check if the table exists
         if [[ ! -f "$table_name" ]]; then
             echo "Table $table_name does not exist."
             return 1
         fi
-
         # Read the header and data
         header=$(head -1 "$table_name")
         data=$(tail -n +3 "$table_name")  # Skip header and separator line
-
         # Convert header to array
         IFS=',' read -a header_columns <<< "$header"
-
         # Convert selected columns to array
         IFS=',' read -a selected_columns <<< "$columns"
-
         # Check if the where column exists in the header
         if [[ ! " ${header_columns[@]} " =~ " ${where_col} " ]]; then
             echo "WHERE column $where_col does not exist in table $table_name."
             return 1
         fi
-
         # Find indices of selected columns and where column
-        indices=()
-        where_index=-1
-        for col in "${selected_columns[@]}"; do
-            col=$(echo "$col" | xargs)  # Trim whitespace
-            found=0
-            for i in "${!header_columns[@]}"; do
-                if [[ "${header_columns[i]}" =~ ^[[:space:]]*$col[[:space:]]*$ ]]; then
-                    indices+=("$i")
-                    found=1
-                    break
-                fi
-            done
-            if [[ $found -eq 0 ]]; then
-                echo "Column $col does not exist in table $table_name."
-                return 1
-            fi
-        done
+        # Find the index of the where column
+for i in "${!header_columns[@]}"; do
+    # Extract just the column name without the data type
+    header_col=$(echo "${header_columns[i]}" | awk '{print $1}')
+    if [[ "$header_col" == "$where_col" ]]; then
+        where_index="$i"
+        break
+    fi
+done
 
+# Find indices of selected columns
+indices=()
+for col in "${selected_columns[@]}"; do
+    col=$(echo "$col" | xargs)  # Trim whitespace
+    found=0
+    for i in "${!header_columns[@]}"; do
+        # Extract just the column name without the data type
+        header_col=$(echo "${header_columns[i]}" | awk '{print $1}')
+        if [[ "$header_col" == "$col" ]]; then
+            indices+=("$i")
+            found=1
+            break
+        fi
+    done
+    if [[ $found -eq 0 ]]; then
+        echo "Column $col does not exist in table $table_name."
+        return 1
+    fi
+done
         # Find the index of the where column
         for i in "${!header_columns[@]}"; do
             if [[ "${header_columns[i]}" =~ ^[[:space:]]*$where_col[[:space:]]*$ ]]; then
@@ -638,27 +553,22 @@ function SelectRow(){
                 break
             fi
         done
-
         if [[ $where_index -eq -1 ]]; then
             echo "WHERE column $where_col does not exist in table $table_name."
             return 1
         fi
-
         # Print header
         header_output=""
         for index in "${indices[@]}"; do
             header_output+="${header_columns[index]},"
         done
         echo "${header_output%,}" > result.txt
-
         # Print separator
         separator=""
         for index in "${indices[@]}"; do
             separator+="-------,"
         done
         echo "${separator%,}" >> result.txt
-
-
         # Process and print matching rows
         while IFS="," read -ra row; do
                 
@@ -671,7 +581,6 @@ function SelectRow(){
                 echo "${row_output%,}" >> result.txt
             fi
         done <<< "$data"
-
         # Display formatted result
         column -t -s ',' result.txt
         rm -f result.txt
@@ -680,7 +589,6 @@ function SelectRow(){
         echo "Invalid query"
     fi
 }
-
 # Run the function
 # SelectRows
 
@@ -792,7 +700,7 @@ function UpdateRow(){
     
 
     # To read array of input
-    read  -p "Enter " query
+    read  -p "Enter your update query: " query
     
 
 
@@ -969,4 +877,236 @@ function UpdateRow(){
 }
 
 # UpdateRow
+
+
+
+# # Function to handle the main menu choices
+# function HandleMainMenuChoice() {
+#     case $1 in
+#         1)
+#             echo "Create Database selected"
+#             CreateDatabase
+#             ;;
+#         2)
+#             echo "List Databases selected"
+#             ListDatabases
+#             ;;
+#         3)
+#             echo "Connect to a Database selected"
+#             ConnectToDatabases
+#             ;;
+#         4)
+#             echo "Drop a Database selected"
+#             DropDatabase
+#             ;;
+#         *)
+#             echo "Invalid choice"
+#             ;;
+#     esac
+# }
+
+# # Function to handle the connect database menu choices
+# function HandleConnectDatabaseMenuChoice() {
+#     case $1 in
+#         1)
+#             echo "Create Table selected"
+#             CreateTable
+#             ;;
+#         2)
+#             echo "List Tables selected"
+#             ListTables
+#             ;;
+#         3)
+#             echo "Drop Table selected"
+#             DropTable
+#             ;;
+#         4)
+#             echo "Insert Row into Table selected"
+#             InsertRow
+#             ;;
+#         5)
+#             echo "Select Row from Table selected"
+#             SelectRow
+#             ;;
+#         6)
+#             echo "Delete Row from Table selected"
+#             DeleteRow
+#             ;;
+#         7)
+#             echo "Update Row in Table selected"
+#             UpdateRow
+#             ;;
+#         *)
+#             echo "Invalid choice"
+#             ;;
+#     esac
+# }
+
+# # Function to validate database name
+# function ValidateDatabaseName() {
+#     local db_name=$1
+#     if [[ -d "$db_name" ]]; then
+#         echo "Connected to database: $db_name SUCCESSFULLY"
+#         cd "$db_name" || { echo "Failed to change directory"; return 1; }
+#         return 0
+#     else
+#         echo "Database '$db_name' does not exist."
+#         return 1
+#     fi
+# }
+
+# # Main script execution
+# while true; do
+#     MainMenu
+#     read -p "Enter your choice: " main_choice
+#     if [[ $main_choice -ne 3 ]]; then
+#         HandleMainMenuChoice $main_choice
+#     elif [[ $main_choice -eq 3 ]]; then
+#         while true; do
+#             read -p "Enter the database name that you want CONNECT to it: " db_name
+#             if ValidateDatabaseName "$db_name"; then
+#                 while true; do
+#                     ConnectDatabaseMenu
+#                     read -p "Enter your choice: " connect_choice
+#                     HandleConnectDatabaseMenuChoice $connect_choice
+#                     break
+#                 done
+#                 break
+#             else
+#                 echo "Please enter a valid database name."
+#             fi
+#         done
+#     fi
+# done
+
+
+
+function ConnectDatabaseMenu(){
+    echo "  Connect to Database Menu"
+    echo "----------------"
+
+    # Validation cases to check user privileges can be added here
+
+    echo "Write a number from the Menu: "
+    echo "1)  Create Table"
+    echo "2)  List Tables"
+    echo "3)  Drop Table"
+    echo "4)  Insert Row into Table"
+    echo "5)  Select Row from Table"
+    echo "6)  Delete Row from Table"
+    echo "7)  Update Row in Table"
+    echo "8)  Back to Main Menu"
+    echo "
+    -------------------------------
+    "
+}
+
+# Function to handle the main menu choices
+function HandleMainMenuChoice() {
+    case $1 in
+        1)
+            echo "Create Database selected"
+            CreateDatabase
+            ;;
+        2)
+            echo "List Databases selected"
+            ListDatabases
+            ;;
+        3)
+            echo "Connect to a Database selected"
+            ConnectToDatabases
+            ;;
+        4)
+            echo "Drop a Database selected"
+            DropDatabase
+            ;;
+        *)
+            echo "Invalid choice"
+            ;;
+    esac
+}
+
+# Function to handle the connect database menu choices
+function HandleConnectDatabaseMenuChoice() {
+    case $1 in
+        1)
+            echo "Create Table selected"
+            # Call the function to create a table
+            CreateTable
+            ;;
+        2)
+            echo "List Tables selected"
+            # Call the function to list tables
+            ListTables
+            ;;
+        3)
+            echo "Drop Table selected"
+            # Call the function to drop a table
+            DropTable
+            ;;
+        4)
+            echo "Insert Row into Table selected"
+            # Call the function to insert a row into a table
+            InsertRow
+            ;;
+        5)
+            echo "Select Row from Table selected"
+            # Call the function to select a row from a table
+            SelectRow
+            ;;
+        6)
+            echo "Delete Row from Table selected"
+            # Call the function to delete a row from a table
+            DeleteRow
+            ;;
+        7)
+            echo "Update Row in Table selected"
+            # Call the function to update a row in a table
+            UpdateRow
+            ;;
+        8)
+            echo "Back to Main Menu selected"
+            return 1
+            ;;
+        *)
+            echo "Invalid choice"
+            ;;
+    esac
+    return 0
+}
+
+# Main script execution
+while true; do
+    MainMenu
+    read -p "Enter your choice: " main_choice
+    if [[ $main_choice -ne 3 ]]; then
+        HandleMainMenuChoice $main_choice
+    elif [[ $main_choice -eq 3 ]]; then
+        while true; do
+            read -p "Enter the database name that you want CONNECT to it: " db_name
+            if [[ -d "$db_name" ]]; then
+                cd "$db_name" || { echo "Failed to change directory"; break; }
+                echo "Connected to database: $db_name SUCCESSFULLY"
+                while true; do
+                    ConnectDatabaseMenu
+                    read -p "Enter your choice: " connect_choice
+                    if ! HandleConnectDatabaseMenuChoice $connect_choice; then
+                        break
+                    fi
+                done
+                break
+            else
+                echo "Please enter a valid database name."
+            fi
+        done
+    fi
+done
+
+
+
+
+
+
+
+
 

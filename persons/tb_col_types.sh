@@ -1,5 +1,3 @@
-#!/bin/env bash
-
 Persons:PersonID
 declare -A Persons=(
     ["PersonID"]="INT"
@@ -8,5 +6,4 @@ declare -A Persons=(
     ["Address"]="VARCHAR(14)"
     ["City"]="VARCHAR(14)"
 )
-
  
