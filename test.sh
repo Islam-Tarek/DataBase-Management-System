@@ -151,10 +151,13 @@ for i in "${!columns_array[@]}"; do
     fi
 
 
-    # CREATE TABLE Persons2 ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
-    # INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (3, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
+    # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
+    # CREATE TABLE Employee ( EmployeeID INT, Name VARCHAR(14), Salary INT, Department VARCHAR(14) )
+    # INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (12, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
+    # INSERT INTO Employee (EmployeeID, Name, Salary, Department) VALUES (1, 'Steve', 40000, 'HR')
     #   SELECT * FROM Persons
     # SELECT EmployeeID, Name, Salary FROM Employee
     # SELECT PersonID, LastName, FirstName, Address FROM Persons WHERE City = 'Lala land2'
+    # SELECT LastName, FirstName FROM Persons WHERE City = 'Lala land4'
     # DELETE FROM Persons WHERE LastName = 'Omar' AND PersonID = '3'
     # UPDATE Employees SET Salary = 45000 WHERE Name = 'Steve' AND Department = 'HR'

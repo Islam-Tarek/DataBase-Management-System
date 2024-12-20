@@ -301,22 +301,30 @@ function DropTable(){
 # DropTable
 
 function InsertRow(){
-    ## Regex for validating the INSERT query syntax
-    regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*'([^']|'')*'|[0-9]+[[:space:]]*)[,]?)+\)[[:space:]]*?$"
+    ## Regex for validating the INSERT query syntax - improved version
+    regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?[[:space:]]*)+)\)[[:space:]]*VALUES[[:space:]]*\((([[:space:]]*'[^']*'|[0-9]+)[[:space:]]*,?[[:space:]]*)*\)[[:space:]]*$"
 
     # Read insert query
     read -p "Enter your INSERT query: " query
     
     if [[ ! $query =~ $regex1 ]]; then
         echo "Invalid INSERT ROW query syntax"
+        # Debug output to help identify the issue
+        echo "Debug - Query received: $query"
         return 1
     fi
     
-    # Extract query components
+    # Extract query components with improved whitespace handling
     table_name=$(echo "$query" | awk -F'[()]' '{print $1}' | sed -E 's/^INSERT[[:space:]]+INTO[[:space:]]+//g' | xargs)
     column_definitions=$(echo "$query" | awk -F'[()]' '{print $2}' | xargs)
     values=$(echo "$query" | awk -F'VALUES[[:space:]]*[(]' '{print $2}' | sed -E 's/[)]$//g' | xargs)
 
+    # Debug output
+    echo "Debug - Table: $table_name"
+    echo "Debug - Columns: $column_definitions"
+    echo "Debug - Values: $values"
+
+    # Rest of your existing function remains the same
     # Check if table exists
     if ! grep -qw "$table_name" allTables; then 
         echo "The table $table_name does NOT exist."

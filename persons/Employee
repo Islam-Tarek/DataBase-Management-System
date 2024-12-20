@@ -1,0 +1,3 @@
+ EmployeeID INT, Name VARCHAR(14), Salary INT, Department VARCHAR(14) 
+,,----------,
+1,Steve,40000,HR

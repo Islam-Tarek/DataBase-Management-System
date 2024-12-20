@@ -7,3 +7,11 @@ declare -A Persons=(
     ["City"]="VARCHAR(14)"
 )
  
+Employee:EmployeeID
+declare -A Employee=(
+    ["EmployeeID"]="INT"
+    ["Name"]="VARCHAR(14)"
+    ["Salary"]="INT"
+    ["Department"]="VARCHAR(14)"
+)
+ 
