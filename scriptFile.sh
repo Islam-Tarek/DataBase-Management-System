@@ -595,7 +595,7 @@ for i in "${!columns_array[@]}"; do
    echo "FAILED to INSERT ROW IN $table_name table" && return 1;
 }
 
-InsertRow;
+# InsertRow;
 
 
 function SelectRow(){
@@ -961,8 +961,42 @@ function UpdateRow(){
         echo "WHERE Columns: ${where_columns[*]}"
         echo "WHERE Values: ${where_values[*]}"
 
+        IFS=" " read -ra set_columns_defintions <<< "$set_column"
+        IFS=" " read -ra set_values_defintions <<< "$set_value"
 
+    primary_key=$(grep -w "$table_name" tb_col_types.sh | cut -d":" -f"2" | head -n 1)
+    echo "PPPPPPrimary_KKKKKKeYYYY::::::::::::::::::   $primary_key"
+    # Validate the column values
+    echo "columns::::::: $set_columns_defintions"
+    echo "values::::::: $set_values_defintions"
+    for i in "${!set_column[@]}"; do
+        # Remove extra spaces
+        col_name=$(echo "${set_column[i]}" | xargs)
+        col_value=$(echo "${set_value[i]}" | xargs)
+        echo "The table name isss:::::::::: $table_name"
         
+        if [[ "$col_name" = "$primary_key" ]]; then
+            echo "Primary key value is $col_value"
+            filed_counter=0
+
+            # Get the header line and find the index of the primary key column
+            header=$(head -n 1 "$table_name")
+            IFS=',' read -ra header_columns <<< "$header"
+            for j in "${!header_columns[@]}"; do
+                if [[ "${header_columns[j]}" = "$primary_key" ]]; then
+                    filed_counter=$((j + 1))
+                    break
+                fi
+            done
+
+            # Check if the primary key value already exists
+            check_primary_key_value=$(cut -d"," -f"$filed_counter" "$table_name" | grep -w "$col_value")
+            if [[ "$check_primary_key_value" != "" ]]; then
+                echo "Primary key value already exists."
+                return 1
+            fi
+        fi
+    done
 
         # Create temporary file for output
         local temp_file=$(mktemp)
@@ -1068,5 +1102,5 @@ function UpdateRow(){
 
 }
 
-# UpdateRow
+UpdateRow
 
