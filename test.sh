@@ -153,9 +153,11 @@ for i in "${!columns_array[@]}"; do
 
     # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
     # CREATE TABLE Employee ( EmployeeID INT, Name VARCHAR(14), Salary INT, Department VARCHAR(14) )
-    # INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (12, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
+    # INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
+    # INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (2, 'John3', 'Doe2', 'abcdst2', 'Lala land2')
     # INSERT INTO Employee (EmployeeID, Name, Salary, Department) VALUES (1, 'Steve', 40000, 'HR')
     #   SELECT * FROM Persons
+    #   SELECT * FROM Employee
     # SELECT EmployeeID, Name, Salary FROM Employee
     # SELECT PersonID, LastName, FirstName, Address FROM Persons WHERE City = 'Lala land2'
     # SELECT LastName, FirstName FROM Persons WHERE City = 'Lala land4'
