@@ -1,59 +1,245 @@
 #!/bin/bash
 
-function ExtractDeleteQueryDetails() {
-    # Example DELETE query
-    query="DELETE FROM Employees WHERE Name = Omar AND Department = HR AND Salary = 50000"
-    # Regex to extract table name and conditions
-    regex="^DELETE[[:space:]]+FROM[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+WHERE[[:space:]]+(.+)$"
+function UpdateRows() {
+    # Input query
+    query="UPDATE Employees SET Salary = 45000 WHERE Name = Steve AND Department = HR"
+ #  query=$1
 
-    # Validate and extract table name and conditions
+    # Regex to parse the query
+    regex="^UPDATE[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]+SET[[:space:]]+(.+)[[:space:]]+WHERE[[:space:]]+(.+)$"
 
-    
+    # Validate and parse the query
     if [[ $query =~ $regex ]]; then
         table_name="${BASH_REMATCH[1]}"
-        conditions="${BASH_REMATCH[2]}"
+        set_clause="${BASH_REMATCH[2]}"
+        where_clause="${BASH_REMATCH[3]}"
     else
-        echo "Invalid DELETE query syntax."
-        exit 1
+        echo "Error: Invalid query syntax."
+        return 1
     fi
 
-    echo "Table Name: $table_name"
+    echo "table name :::: $table_name"
+    echo "set values :::: $set_clause"
+    echo "where codetion :::: $where_clause"
 
-    # columnss=$(echo "$conditions" | awk -F'=' '{print $3}' | xargs)
-    # echo "colllllllllllllmns $columnss" 
+
+    # Ensure the table file exists
+    if [ ! -f "$table_name" ]; then
+        echo "Error: Table '$table_name' not found."
+        return 1
+    fi
+
+    # Create a backup of the original file
+    cp "$table_name" "${table_name}.bak"
+
+    # Parse the SET clause into column-value pairs
+    declare -A set_columns
+    declare -A where_conditions
+
+con_name=""
+con_val=""
+flage=0
+search_string=""
+
+
+    IFS=" " read -a set_array <<< "$set_clause"
     
-    # Extract the column-value pairs from the conditions
-    IFS='AND' read -r -a condition_array <<< "$conditions"
+    echo "set_array ::::::: ${set_clause[0]}"
 
-    echo "Conditions:"
-    valuess=""
-    for condition in "${condition_array[@]}"; do
-        # Trim spaces around the condition
-        condition=$(echo "$condition" | xargs)
-
-        # Extract column name and value
-        if [[ $condition =~ ^([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
-            column="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            echo "colllllllll $column"
-            echo "valllllllllll $value"
-            # Remove quotes from string values
-            value=$(echo "$value" | sed "s/^'//;s/'$//")
-            valuess+="$value "
-            echo " $value"
-        # else
-            # echo "Invalid condition: $condition"
+    for pair in "${set_array[@]}"; do
+        # Trim leading/trailing spaces
+        pair=$(echo "$pair" | xargs)
+        
+        # Debug output
+        echo "pair: $pair"
+        
+        # Skip operators like = and AND
+        if [[ "$pair" == "=" || "$pair" == "AND" ]]; then
+            continue
+        fi
+        
+        # Process the pair based on whether it's a column name or a value
+        if [[ $flage -eq 0 ]]; then
+            # This is the column name
+            con_name=$pair
+            flage=1
+        elif [[ $flage -eq 1 ]]; then
+            # This is the value
+            con_val=$pair
+            echo "con_name::::::: $con_name"
+            con_val=$(echo "$con_val" | sed "s/^'//;s/'$//")  # Remove quotes from string values
+            echo "con_val::::::: $con_val"
+            set_array["$con_name"]="$con_val"
+            # search_string+="$con_val "
+            flage=0
+            echo "Where column: $con_name -> $con_val"
+        else
+            echo "Invalid WHERE clause: $pair"
+            return 1
         fi
     done
 
-    echo "valesssssssssssssss$valuess"
+   # set -x
 
-    pattern=$(echo "$valuess" | sed 's/ /.*, /g')
-    pattern=$(echo "$pattern" | sed 's/, $//')
-    echo "patterrrrrrrrrrrrn $pattern"
-    sed -i "/$pattern/d" "$table_name" &&
-      echo "Query executed SUCCESSFULLY" &&
-     return 0;
+
+# Trim whitespace from the WHERE clause
+where_clause=$(echo "$where_clause" | xargs)
+
+echo "where clause :::::: $where_clause"
+
+# Split conditions by 'AND' while handling spaces
+IFS=" " read -a where_array <<< "$where_clause"
+    echo "WHERE conditions: $where_clause"
+
+
+echo "Parsed conditions: ${where_array[@]}"
+
+
+
+for condition in "${where_array[@]}"; do
+    # Trim leading/trailing spaces
+    condition=$(echo "$condition" | xargs)
+    
+    # Debug output
+    echo "condition: $condition"
+    
+    # Skip operators like = and AND
+    if [[ "$condition" == "=" || "$condition" == "AND" ]]; then
+        continue
+    fi
+    
+    # Process the condition based on whether it's a column name or a value
+    if [[ $flage -eq 0 ]]; then
+        # This is the column name
+        con_name=$condition
+        flage=1
+    elif [[ $flage -eq 1 ]]; then
+        # This is the value
+        con_val=$condition
+        echo "con_name::::::: $con_name"
+        con_val=$(echo "$con_val" | sed "s/^'//;s/'$//")  # Remove quotes from string values
+        echo "con_val::::::: $con_val"
+        where_conditions["$con_name"]="$con_val"
+        search_string+="$con_val, "
+        flage=0
+        echo "Where column: $con_name -> $con_val"
+    else
+        echo "Invalid WHERE clause: $condition"
+        return 1
+    fi
+done
+
+ #   set +x
+
+
+
+
+# for i in $"{!columns[@]}"; do
+#     for j in $"!{set_array[@]}"; do
+#         if [[ "$i" -lt "${#columns[@]}" && "$j" -lt "${#set_array[@]}" ]]; then
+#             if [[ "${columns[i]}" == "${set_array[j]}" ]]; then
+#                     # Proceed with your logic
+#                   column_index=$i
+#                     break;
+#             fi
+#         else
+#             echo "Index out of bounds"
+#         fi
+#     done
+#     if [[ "$column_index" -eq -1 ]]; then
+#     echo "Error: Column '$column_name' not found in header. "
+#     return 1;
+
+
+# Read the first line (header) to get the column names
+# Read the first line (header) to get the column names
+header=$(head -n 1 "$table_name")
+# Split the header into an array of columns
+IFS=',' read -a columns <<< "$header"
+
+# Create a temporary file to store the updated content
+temp_file=$(mktemp)
+
+# Process the file line by line
+while IFS="," read -a line; do
+    # If the current line is the header, write it directly to the temp file
+    if [[ "${line[*]}" == "$header" ]]; then
+        echo "${line[*]}" >> "$temp_file"
+        continue
+    fi
+
+    # Check if the line contains the search string
+    if [[ "${line[*]}" == *"$search_string"* ]]; then
+        # Iterate through each column in the header
+        for i in "${!columns[@]}"; do
+            column_name=$(echo "${columns[i]}" | xargs)  # Trim spaces
+            # Check if the current column is in the set_array
+            if [[ -n "${set_array[$column_name]}" ]]; then
+                line[$i]="${set_array[$column_name]}"  # Update column with new value
+                echo "Updated column '$column_name' at index $i with value '${set_array[$column_name]}'"
+            fi
+        done
+    fi
+
+    # Write the updated line to the temp file
+    echo "${line[*]}" >> "$temp_file"
+done < "$table_name"
+
+# Replace the original file with the updated content
+mv "$temp_file" "$table_name"
+
+echo "File updated successfully."
+
+
+
+
+    
+
+ 
+#  # Create temporary file to store updated rows
+#     temp_file=$(mktemp)
+#     # header=$(head -n 1 "$table_name")
+#     echo "$header" > "$temp_file"  # Write the header to the temp file
+
+#     # Process the data rows
+#     tail -n +2 "$table_name" | while IFS=',' read -r id name dept salary; do
+#         # Trim spaces from each column value
+#         name=$(echo "$name" | xargs)
+#         dept=$(echo "$dept" | xargs)
+
+#         # Check if this row matches the WHERE conditions
+#         match=true
+#         for column in "${!where_conditions[@]}"; do
+#             # Dynamically check if the column values match the WHERE conditions
+#             column_value="${where_conditions[$column]}"
+#             if [[ "$column" == "Name" && "$name" != "$column_value" ]] ||
+#                [[ "$column" == "Department" && "$dept" != "$column_value" ]] ||
+#                [[ "$column" != "Name" && "$column" != "Department" && "$column" != "EmployeeID" && "$column" != "Salary" ]]; then
+#                 match=false
+#                 break
+#             fi
+#         done
+
+#         # If matched, update the row with new SET values
+#         if [ "$match" == true ]; then
+#             for column in "${!set_columns[@]}"; do
+#                 # Dynamically update columns based on the SET clause
+#                 if [[ "$column" == "Salary" ]]; then
+#                     salary="${set_columns["$column"]}"
+#                 fi
+#             done
+#         fi
+
+#         # Write the updated or original row to the temp file
+#         echo "$id, $name, $dept, $salary" >> "$temp_file"
+#     done
+
+#     # Replace original file with updated content
+#     mv "$temp_file" "$table_name"
+
+#     echo "Update completed successfully"
+#     echo "A backup of the original file was created as $table_name.bak"
 }
 
-ExtractDeleteQueryDetails
+# Run the function
+UpdateRows
