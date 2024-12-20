@@ -95,11 +95,18 @@ function CreateDatabase(){
             # 1 - database owner  or root ?
             # 2 - this user in the owner group ? check the group privileges
             # 3 - others ? check the others privileges
-        
+    
+    if [[ -d "$db_name_create" ]]; then
+        echo "There's a directory have SAME name" && return 1;
+    fi
+
     mkdir "$db_name_create" || { echo "Faliled to CREATE this database"; return 1; }
 
-    echo "$db_name_create database is CREATED SUCCESSFULLY"
-    return 0;  
+    touch "$db_name_create"/allTables || { echo "Faliled to CREATE allTables file"; return 1; }
+    
+    touch "$db_name_create"/tb_col_types.sh || { echo "Faliled to CREATE tb_col_types file"; return 1; }
+
+    echo "$db_name_create database is CREATED SUCCESSFULLY" && return 0;  
     
     echo "You are NOT accessible to CREATE database"
     return 1;
@@ -271,6 +278,7 @@ function CreateTable2(){
         ### Need to enchance this query to accept VARCHAR type without count of letters
 
     read -p "Enter CREATE TABLE query: " query
+    read -p "Write Column name AS a PRIMARY KEY for the Table: " primary_key
 
     # Regex for validating the CREATE TABLE syntax
     regex="^CREATE[[:space:]]+TABLE[[:space:]]+([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+(INT|VARCHAR\([[:space:]]*[0-9]{1,15}[[:space:]]*\))[[:space:]]*,?)+)\)[[:space:]]*?$"
@@ -295,20 +303,42 @@ function CreateTable2(){
 
 
      # 4- Check if there's a table with same name  ***
-    if [[ -f "$table_name_create" ]]; then
+    if [[ -f "$table_name" ]]; then
         echo "There's a FILE have SAME name" && return 1;
     fi
 
-    touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
-
-    # push table name in (allTables) file
-    echo "$table_name" >> "allTables"
-
-    # Initialize the associative array
-    echo "declare -A $table_name=(" >> "$tb_ref"
-
     # Parse column definitions
     IFS=',' read -ra columns <<< "$column_definitions"
+    
+    # Validate column definitions
+    flag=0
+     for col in "${columns[@]}"; do
+        # Remove extra whitespace
+        col=$(echo "$col" | xargs)
+        # Extract column name and type
+        col_name=$(echo "$col" | awk '{print $1}')
+        col_type=$(echo "$col" | awk '{print $2}')
+        if [[ "$col_name" = "$primary_key" ]]; then
+            flag=1
+        fi
+    done
+
+    if [[ $flag -eq 0 ]]; then
+        echo "Primary key not found in column definitions."
+        return 1;
+    fi
+
+
+    # Create table file
+    touch "$table_name" || { echo "FAILED to CREATE table"; return 1;}
+
+     # push table name in (allTables) file
+    echo "$table_name" >> "allTables"
+
+    echo "$table_name:$primary_key" >> "$tb_ref"
+    
+    echo "declare -A $table_name=(" >> "$tb_ref"
+
     declare -A my_map
 
     for col in "${columns[@]}"; do
@@ -326,6 +356,8 @@ function CreateTable2(){
     done
 
     echo ")" >> "$tb_ref"
+    echo " " >> "$tb_ref"
+    echo
     echo "Map for table '$table_name' has been saved to $tb_ref."
 
     ## Need to create the table format using -----
@@ -401,8 +433,7 @@ function InsertRow(){
     ##### INSERT QUERY
     # CREATE TABLE Persons ( PersonID INT, LastName VARCHAR(14), FirstName VARCHAR(255), Address VARCHAR(14), City VARCHAR(14) )
     
-    ##### INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John', 'Doe', 'abcd,st', 'Lala land');
-    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (2, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
+    ## 1- INSERT INTO Persons (PersonID, LastName, FirstName, Address, City) VALUES (1, 'John2', 'Doe2', 'abcdst2', 'Lala land2')
         ### regex1="^INSERT[[:space:]]+INTO[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\((([[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*,?)+)\)[[:space:]]+VALUES[[:space:]]*\((([[:space:]]*('[^']*'|[0-9]+)[[:space:]]*,?)+)\)[[:space:]]*?$"
 
     ## 2- INSERT INTO Persons VALUES (1, 'John', 'Doe', 30);
@@ -491,13 +522,40 @@ function InsertRow(){
         return 1
     fi
 
-    for i in "${!columns_array[@]}"; 
-    do
-        # Remove extra spaces
-        col_name=$(echo "${columns_array[i]}" | xargs)
-        col_value=$(echo "${values_array[i]}" | xargs)
-        echo "The table name isss:::::::::: $table_name"
-        
+    # primary_key=`cut -d":" -f"1" tb_col_types.sh | grep -w "$primary_key"`
+    primary_key=$(grep -w "$table_name" tb_col_types.sh | cut -d":" -f"2" | head -n 1)
+    echo "PPPPPPrimary_KKKKKKeYYYY::::::::::::::::::   $primary_key"
+    # Validate the column values
+
+for i in "${!columns_array[@]}"; do
+    # Remove extra spaces
+    col_name=$(echo "${columns_array[i]}" | xargs)
+    col_value=$(echo "${values_array[i]}" | xargs)
+    echo "The table name isss:::::::::: $table_name"
+    
+    if [[ "$col_name" = "$primary_key" ]]; then
+        echo "Primary key value is $col_value"
+        filed_counter=0
+
+        # Get the header line and find the index of the primary key column
+        header=$(head -n 1 "$table_name")
+        IFS=',' read -ra header_columns <<< "$header"
+        for j in "${!header_columns[@]}"; do
+            if [[ "${header_columns[j]}" = "$primary_key" ]]; then
+                filed_counter=$((j + 1))
+                break
+            fi
+        done
+
+        # Check if the primary key value already exists
+        check_primary_key_value=$(cut -d"," -f"$filed_counter" "$table_name" | grep -w "$col_value")
+        if [[ "$check_primary_key_value" != "" ]]; then
+            echo "Primary key value already exists."
+            return 1
+        fi
+    fi
+
+
         # Check if the column exists in the table metadata
         if [[ -z "${table_metadata[$col_name]}" ]]; then
             echo "Column $col_name doesn't exist in table $table_name"
@@ -534,12 +592,10 @@ function InsertRow(){
    echo "New Row added SUCCESSFULLY to table $table_name" && 
    return 0;
 
-    
-
-        echo "FAILED to INSERT ROW IN $table_name table" && return 1;
+   echo "FAILED to INSERT ROW IN $table_name table" && return 1;
 }
 
-# InsertRow;
+InsertRow;
 
 
 function SelectRow(){
@@ -737,7 +793,7 @@ function SelectRow(){
 }
 
 # Run the function
-SelectRows
+# SelectRows
 
 
 function DeleteRow(){
@@ -904,6 +960,9 @@ function UpdateRow(){
         echo "SET Value: $set_value"
         echo "WHERE Columns: ${where_columns[*]}"
         echo "WHERE Values: ${where_values[*]}"
+
+
+        
 
         # Create temporary file for output
         local temp_file=$(mktemp)
